@@ -1,2 +1,20 @@
 <app-navbar></app-navbar>
+<div style="text-align: center;" >
+    <div class="imgbox">
+        <img src="/assets/home-background.jpg" class="bg-image" *ngIf="router.url === '/'">
+    </div>
+    <div *ngIf="router.url === '/'">
+        <div class="bg-text">
+            <h1>Protection you can trust</h1>
+            <h1>from the leader in cyber security</h1>
+            <p>Scroll for more!</p>
+        </div>
+        <div class="main">
+            <br>
+            <br>
+            <h2>Information about us</h2>
+            <p id="p1">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Culpa facilis, labore debitis nesciunt ipsam odio corporis architecto reiciendis voluptas ab quibusdam ratione rerum tempore voluptatibus libero cumque dignissimos vero hic! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Culpa facilis, labore debitis nesciunt ipsam odio corporis architecto reiciendis voluptas ab quibusdam ratione rerum tempore voluptatibus libero cumque dignissimos vero hic!Lorem ipsum dolor sit amet, consectetur adipisicing elit. Culpa facilis, labore debitis nesciunt ipsam odio corporis architecto reiciendis voluptas ab quibusdam ratione rerum tempore voluptatibus libero cumque dignissimos vero hic!Lorem ipsum dolor sit amet, consectetur adipisicing elit. Culpa facilis, labore debitis nesciunt ipsam odio corporis architecto reiciendis voluptas ab quibusdam ratione rerum tempore voluptatibus libero cumque dignissimos vero hic!</p>
+        </div> 
+    </div>   
+</div>
 <router-outlet></router-outlet>
