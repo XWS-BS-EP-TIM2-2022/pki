@@ -1,0 +1,48 @@
+<div class="center">
+    <h1>Register</h1>
+    <form method="post" [formGroup]="this.myFormGroup">
+      <div class="txt_field">
+        <input type="email" id="email" placeholder="Email" formControlName="email">
+        <span></span>
+        <label>Email</label>
+      </div>
+      <div class="txt_field">
+        <input type="password" id="password" placeholder="Password" formControlName="password">
+        <span></span>
+        <label>Password</label>
+      </div>
+      <div class="txt_field">
+        <input type="password" id="password" placeholder="Rewrite password" formControlName="rePassword">
+        <span></span>
+        <label>RePassword</label>
+      </div>
+      <div class="txt_field">
+        <input type="text" id="name" placeholder="Name" formControlName="name">
+        <span></span>
+        <label>Name</label>
+      </div>
+      <div class="txt_field">
+        <input type="text" id="surname" placeholder="Surname" formControlName="surname">
+        <span></span>
+        <label>Surname</label>
+      </div>
+      <div class="txt_field">
+        <input type="text" id="address" placeholder="Address" formControlName="address">
+        <span></span>
+        <label>Address</label>
+      </div>
+      <div class="txt_field" style="margin-top: -15%;">
+        <label style="color: #2691d9;">User type:</label>
+        <br><br><br>
+        <span></span>
+        <select formControlName="appUserType" class="form-select" aria-label="Choose user type">
+            <option value="INTERMEDIATE">Intermediate</option>
+            <option value="END_ENTITY">End entity</option>
+        </select>
+    </div>
+      <input type="submit" (click)="onClickSubmit()" value="Register">
+      <div class="signup_link">
+        Already a member? <a [routerLink]="['/login']">Login</a>
+      </div>
+    </form>
+  </div>
