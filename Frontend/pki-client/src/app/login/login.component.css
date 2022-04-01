@@ -8,7 +8,7 @@
 body{
   margin: 0;
   padding: 0;
-  background: linear-gradient(120deg,#2980b9, #8e44ad);
+  background-color: linear-gradient(120deg,#2980b9, #8e44ad);
   height: 100vh;
   overflow: hidden;
 }
@@ -70,10 +70,10 @@ form .txt_field{
   top: -5px;
   color: #2691d9;
 }
-.txt_field input:focus ~ span::before,
+/* .txt_field input:focus ~ span::before,
 .txt_field input:valid ~ span::before{
   width: 100%;
-}
+} */
 .pass{
   margin: -5px 0 20px 5px;
   color: #a6a6a6;
