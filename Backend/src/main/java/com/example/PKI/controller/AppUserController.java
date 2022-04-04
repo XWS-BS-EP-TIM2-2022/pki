@@ -5,7 +5,7 @@ import com.example.PKI.dto.LoginDTO;
 import com.example.PKI.dto.LoginResponseDTO;
 import com.example.PKI.dto.UserTokenState;
 import com.example.PKI.model.AppUser;
-import com.example.PKI.service.AppUserService;
+import com.example.PKI.service.AppUserServiceImpl;
 import com.example.PKI.util.TokenUtils;
 import com.example.PKI.verification.VerificationToken;
 import com.example.PKI.verification.VerificationTokenService;
@@ -28,7 +28,7 @@ import java.util.*;
 public class AppUserController {
 
     @Autowired
-    private AppUserService appUserService;
+    private AppUserServiceImpl appUserService;
     @Lazy
     private PasswordEncoder passwordEncoder;
     @Lazy
@@ -38,7 +38,6 @@ public class AppUserController {
     @Autowired
     private TokenUtils tokenUtils;
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppUserDTO> save(@RequestBody AppUserDTO appUserDTO) {
 
@@ -53,11 +52,6 @@ public class AppUserController {
         //AppUser appUser = new AppUser(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.isAdmin(), appUserDTO.isEndEntity(), appUserDTO.isCA());
         AppUser appUser = new AppUser(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.isAdmin(), appUserDTO.isEndEntity(), appUserDTO.isCA());
         appUser = appUserService.save(appUser);
-
-        String token = UUID.randomUUID().toString();
-        VerificationToken verificationToken = new VerificationToken(null, token, appUser, new Date());
-        verificationTokenService.save(verificationToken);
-
         return new ResponseEntity<>(new AppUserDTO(appUser), HttpStatus.OK);
     }
 
@@ -78,7 +72,6 @@ public class AppUserController {
         return new ResponseEntity<>(new LoginResponseDTO(appUser, userTokenState), HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<AppUserDTO>> findAll() {
         Collection<AppUser> appUsers = appUserService.findAll();
@@ -90,7 +83,6 @@ public class AppUserController {
         return new ResponseEntity<>(appUserDTOS, HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AppUserDTO> findOne(@PathVariable("id") long id) {
         AppUser appUser = appUserService.findOne(id);
@@ -102,7 +94,6 @@ public class AppUserController {
         return new ResponseEntity<>(new AppUserDTO(appUser), HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> remove(@PathVariable("id") long id) {
         AppUser appUser = appUserService.findOne(id);
