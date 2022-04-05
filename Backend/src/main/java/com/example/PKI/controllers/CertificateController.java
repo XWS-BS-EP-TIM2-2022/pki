@@ -2,11 +2,11 @@ package com.example.PKI.controllers;
 
 import com.example.PKI.dtos.NewCertificateDTO;
 import com.example.PKI.model.Certificate;
-import com.example.PKI.services.RootCertificateService;
+import com.example.PKI.services.CertificateIssuingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,10 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "api/certificates")
 public class CertificateController {
     @Autowired
-    RootCertificateService rootCertificateService;
+    CertificateIssuingService certificateIssuingService;
 
-    @PostMapping(value = "/createRoot", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Certificate createRootCert(@RequestBody NewCertificateDTO dto) {
-        return rootCertificateService.issueCertificate(dto);
+    @PostMapping(value = "/createRoot")
+    public ResponseEntity<String> createRootCert() {
+        var root = certificateIssuingService.issueCertificate();
+
+        if (root == null)
+            return new ResponseEntity<>("Root certificate already exists!", HttpStatus.BAD_REQUEST);
+
+        return new ResponseEntity<>("Root certificate successfully created!", HttpStatus.OK);
     }
 }

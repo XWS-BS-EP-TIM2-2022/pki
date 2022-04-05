@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.example.PKI.data.IssuerData;
 import com.example.PKI.data.SubjectData;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
@@ -23,7 +24,10 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 
 public class CertificateGenerator {
-	public CertificateGenerator() {}
+	public CertificateGenerator() {
+		Security.addProvider(new BouncyCastleProvider());
+	}
+
 	public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, List<Integer> keyUsageValues) {
 		try {
 			Security.addProvider(new BouncyCastleProvider());

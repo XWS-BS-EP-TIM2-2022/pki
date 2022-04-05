@@ -19,7 +19,7 @@ public class User {
     @Column(nullable = false)
     private String commonName;
     @Column(nullable = false)
-    private String orgName;
+    private String organizationName;
     @Column(nullable = false)
     private String surname;
     @Column(nullable = false)
@@ -35,12 +35,12 @@ public class User {
         this.commonName = commonName;
     }
 
-    public String getOrgName() {
-        return orgName;
+    public String getOrganizationName() {
+        return organizationName;
     }
 
-    public void setOrgName(String orgName) {
-        this.orgName = orgName;
+    public void setOrganizationName(String organizationName) {
+        this.organizationName = organizationName;
     }
 
     public String getSurname() {
