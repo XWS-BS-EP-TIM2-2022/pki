@@ -17,8 +17,20 @@ public class KeyStoreConfig {
     @Value("${root-cert.password}")
     private String rootCertPassword;
 
+    private String certificatesFolder = "certificates/";
+
+    public KeyStoreConfig() {
+        try {
+            var path = Path.of(certificatesFolder);
+            if (Files.notExists(path))
+                Files.createDirectory(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public String getRootCertKeystore() {
-        return rootCertKeystore;
+        return certificatesFolder + rootCertKeystore;
     }
 
     public void setRootCertKeystore(String rootCertKeystore) {

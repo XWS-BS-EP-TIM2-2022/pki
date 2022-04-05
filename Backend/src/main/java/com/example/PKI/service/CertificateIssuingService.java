@@ -1,9 +1,8 @@
-package com.example.PKI.services;
+package com.example.PKI.service;
 
 import com.example.PKI.certificates.CertificateGenerator;
 import com.example.PKI.data.IssuerData;
 import com.example.PKI.data.SubjectData;
-import com.example.PKI.dtos.NewCertificateDTO;
 import com.example.PKI.keystores.KeyStoreConfig;
 import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.keystores.KeyStoreWriter;
@@ -69,12 +68,12 @@ public class CertificateIssuingService {
        keyUsages.add(KeyUsage.keyEncipherment); //public key can be used for enciphering private key
        keyUsages.add(KeyUsage.cRLSign); //public key can used for verifying signatures on certificate revocation list
 
-       var rootAlias = admin.getUsername();
+       var rootAlias = admin.getUsername() + " root certificate";
 
        if(rootAlreadyExists(rootAlias))
            return null;
 
-       var rootCertificate = certificateGenerator.generateCertificate(subject, issuer, keyUsages);
+       var rootCertificate = certificateGenerator.generateCertificate(subject, issuer, keyUsages, true);
        saveToKeyStore(issuer, rootAlias, rootCertificate);
 
         return certificateRepository.save(new Certificate(rootCertificate.getSerialNumber().toString(),
@@ -90,16 +89,12 @@ public class CertificateIssuingService {
 
     private boolean rootAlreadyExists(String alias) {
         var c = keystoreReader.readCertificate(config.getRootCertKeystore(), config.getRootCertPassword(), alias);
-
-        if(c == null)
-            return false;
-
-        return true;
+        return c != null;
     }
 
     private X500NameBuilder getDataForSelfSigned(User admin) {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-        builder.addRDN(BCStyle.CN, admin.getCommonName());
+        builder.addRDN(BCStyle.CN, "XWS Root Cert");
         builder.addRDN(BCStyle.SURNAME, admin.getSurname());
         builder.addRDN(BCStyle.GIVENNAME, admin.getGivenName());
         builder.addRDN(BCStyle.O, admin.getOrganizationName());
@@ -110,12 +105,11 @@ public class CertificateIssuingService {
     private KeyPair generateKeys() {
         try {
             var generator = KeyPairGenerator.getInstance("RSA");
-            var random = SecureRandom.getInstance("SHA1PRNG", "SUN");
             generator.initialize(2048);
 
             return generator.generateKeyPair();
         }
-        catch (NoSuchAlgorithmException | NoSuchProviderException e){
+        catch (NoSuchAlgorithmException e){
             e.printStackTrace();
         }
 

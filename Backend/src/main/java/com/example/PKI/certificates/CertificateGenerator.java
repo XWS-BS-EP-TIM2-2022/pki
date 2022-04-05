@@ -1,17 +1,8 @@
 package com.example.PKI.certificates;
 
-import java.math.BigInteger;
-import java.security.Security;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.List;
-
 import com.example.PKI.data.IssuerData;
 import com.example.PKI.data.SubjectData;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -22,13 +13,21 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import java.math.BigInteger;
+import java.security.Security;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.List;
+
 
 public class CertificateGenerator {
 	public CertificateGenerator() {
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
-	public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, List<Integer> keyUsageValues) {
+	public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, List<Integer> keyUsageValues,
+											   boolean isCA) {
 		try {
 			Security.addProvider(new BouncyCastleProvider());
 			JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
@@ -43,19 +42,16 @@ public class CertificateGenerator {
 					subjectData.getX500name(),
 					subjectData.getPublicKey());
 
+			certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(isCA));
 			certGen.addExtension(Extension.keyUsage, true, new KeyUsage(setKeyUsage(keyUsageValues)));
+			certGen.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(new GeneralName(GeneralName.dNSName, "localhost")));
+
 			X509CertificateHolder certHolder = certGen.build(contentSigner);
 			JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
 			certConverter = certConverter.setProvider("BC");
 
 			return certConverter.getCertificate(certHolder);
-		} catch (CertificateEncodingException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-		} catch (OperatorCreationException e) {
+		} catch (CertificateEncodingException | IllegalArgumentException | IllegalStateException | OperatorCreationException e) {
 			e.printStackTrace();
 		} catch (CertificateException e) {
 			e.printStackTrace();
@@ -66,7 +62,6 @@ public class CertificateGenerator {
 	}
 
 	private int setKeyUsage(List<Integer> keyUsageValues) {
-		System.out.println(keyUsageValues);
 		var retVal = 0;
 		for(var i : keyUsageValues) {
 			retVal = retVal | i;
