@@ -5,6 +5,7 @@ import com.example.PKI.dto.LoginDTO;
 import com.example.PKI.dto.LoginResponseDTO;
 import com.example.PKI.dto.UserTokenState;
 import com.example.PKI.model.User;
+import com.example.PKI.model.enumerations.Role;
 import com.example.PKI.service.UserServiceImpl;
 import com.example.PKI.util.TokenUtils;
 import com.example.PKI.verification.VerificationTokenService;
@@ -37,7 +38,6 @@ public class UserController {
     @Autowired
     private TokenUtils tokenUtils;
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> save(@RequestBody UserDTO appUserDTO) {
 
@@ -50,9 +50,15 @@ public class UserController {
         }
 
         //AppUser appUser = new AppUser(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.isAdmin(), appUserDTO.isEndEntity(), appUserDTO.isCA());
-        User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.getRole(), appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
-        appUser = appUserService.save(appUser);
-        return new ResponseEntity<>(new UserDTO(appUser), HttpStatus.OK);
+        if(appUserDTO.getRole() == Role.Intermediate) {
+            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+            appUser = appUserService.save(appUser);
+        } else if(appUserDTO.getRole() == Role.EndUser) {
+            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+            appUser = appUserService.save(appUser);
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
