@@ -8,52 +8,9 @@ public class NewCertificateDTO {
     private Date validFrom;
     private Date validTo;
     private List<Integer> keyUsages;
-    //samo userid pa da iz njega izvlacim ostalo?
-    private String commonName;
-    private String orgName;
-    private String surname;
-    private String givenName;
-    private String email;
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
-    public String getGivenName() {
-        return givenName;
-    }
-
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getCommonName() {
-        return commonName;
-    }
-
-    public void setCommonName(String commonName) {
-        this.commonName = commonName;
-    }
-
-    public String getOrgName() {
-        return orgName;
-    }
-
-    public void setOrgName(String orgName) {
-        this.orgName = orgName;
-    }
+    private int subjectId;
+    private int issuerId;
+    private boolean isCA;
 
     public String getIssuerSerialNumber() {
         return issuerSerialNumber;
@@ -77,5 +34,37 @@ public class NewCertificateDTO {
 
     public void setValidTo(Date validTo) {
         this.validTo = validTo;
+    }
+
+    public List<Integer> getKeyUsages() {
+        return keyUsages;
+    }
+
+    public void setKeyUsages(List<Integer> keyUsages) {
+        this.keyUsages = keyUsages;
+    }
+
+    public int getSubjectId() {
+        return subjectId;
+    }
+
+    public void setSubjectId(int subjectId) {
+        this.subjectId = subjectId;
+    }
+
+    public int getIssuerId() {
+        return issuerId;
+    }
+
+    public void setIssuerId(int issuerId) {
+        this.issuerId = issuerId;
+    }
+
+    public boolean isCA() {
+        return isCA;
+    }
+
+    public void setCA(boolean CA) {
+        isCA = CA;
     }
 }

@@ -5,7 +5,7 @@ import java.util.Date;
 
 @Entity
 @Table(name = "certificates")
-public class Certificate {
+public class CertificateData {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -28,10 +28,10 @@ public class Certificate {
     @JoinColumn(name = "user_id")
     public User userId;
 
-    public Certificate() {}
+    public CertificateData() {}
 
-    public Certificate(String serialNumber, String signatureAlgorithm, String issuer,
-                       Date validFrom, Date validTo, String subject, boolean isWithdrawn, User userId) {
+    public CertificateData(String serialNumber, String signatureAlgorithm, String issuer,
+                           Date validFrom, Date validTo, String subject, boolean isWithdrawn, User userId) {
         this.serialNumber = serialNumber;
         this.signatureAlgorithm = signatureAlgorithm;
         this.issuer = issuer;

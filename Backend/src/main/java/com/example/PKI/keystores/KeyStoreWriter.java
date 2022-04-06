@@ -56,4 +56,12 @@ public class KeyStoreWriter {
 			e.printStackTrace();
 		}
 	}
+
+	public void write(String alias, PrivateKey privateKey, char[] password, Certificate[] certificate) {
+		try {
+			keyStore.setKeyEntry(alias, privateKey, password, certificate);
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+		}
+	}
 }
