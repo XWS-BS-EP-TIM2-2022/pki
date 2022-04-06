@@ -1,6 +1,6 @@
 package com.example.PKI.dto;
 
-import com.example.PKI.model.AppUser;
+import com.example.PKI.model.User;
 
 public class LoginResponseDTO {
 
@@ -11,7 +11,7 @@ public class LoginResponseDTO {
         this.id = id;
         this.userTokenState = userTokenState;
     }
-    public LoginResponseDTO(AppUser appUser, UserTokenState userTokenState) {
+    public LoginResponseDTO(User appUser, UserTokenState userTokenState) {
         this.id = appUser.getId();
         this.userTokenState = userTokenState;
     }

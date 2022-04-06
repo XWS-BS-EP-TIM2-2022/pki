@@ -1,6 +1,6 @@
 package com.example.PKI.verification;
 
-import com.example.PKI.model.AppUser;
+import com.example.PKI.model.User;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -17,9 +17,9 @@ public class VerificationToken {
 
     private String token;
 
-    @OneToOne(targetEntity = AppUser.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "user_id")
-    private AppUser appUser;
+    private User appUser;
 
     private Date expiryDate;
 
@@ -32,7 +32,7 @@ public class VerificationToken {
 
     public VerificationToken() {}
 
-    public VerificationToken(Long id, String token, AppUser appUser, Date expiryDate) {
+    public VerificationToken(Long id, String token, User appUser, Date expiryDate) {
         this.id = id;
         this.token = token;
         this.appUser = appUser;
@@ -55,11 +55,11 @@ public class VerificationToken {
         this.token = token;
     }
 
-    public AppUser getAppUser() {
+    public User getAppUser() {
         return appUser;
     }
 
-    public void setAppUser(AppUser appUser) {
+    public void setAppUser(User appUser) {
         this.appUser = appUser;
     }
 

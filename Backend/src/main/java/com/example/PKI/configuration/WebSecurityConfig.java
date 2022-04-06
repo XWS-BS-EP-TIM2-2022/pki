@@ -2,7 +2,7 @@ package com.example.PKI.configuration;
 
 import com.example.PKI.security.RestAuthenticationEntryPoint;
 import com.example.PKI.security.TokenAuthenticationFilter;
-import com.example.PKI.service.AppUserService;
+import com.example.PKI.service.UserService;
 import com.example.PKI.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
    }
 
    @Autowired
-   private AppUserService customUserDetailsService;
+   private UserService customUserDetailsService;
 
    @Autowired
    private RestAuthenticationEntryPoint restAuthenticationEntryPoint;

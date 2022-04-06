@@ -1,6 +1,6 @@
 package com.example.PKI.util;
 
-import com.example.PKI.model.AppUser;
+import com.example.PKI.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -231,7 +231,7 @@ public class TokenUtils {
      * @return Informacija da li je token validan ili ne.
      */
     public Boolean validateToken(String token, UserDetails userDetails) {
-        AppUser user = (AppUser) userDetails;
+        User user = (User) userDetails;
         final String username = getUsernameFromToken(token);
         final Date created = getIssuedAtDateFromToken(token);
 

@@ -1,8 +1,9 @@
 package com.example.PKI.dto;
 
-import com.example.PKI.model.AppUser;
+import com.example.PKI.model.User;
+import com.example.PKI.model.enumerations.Role;
 
-public class AppUserDTO {
+public class UserDTO {
 
     private long id;
     private String email;
@@ -10,35 +11,35 @@ public class AppUserDTO {
     private String name;
     private String surname;
     private String address;
-    private boolean admin;
-    private boolean endEntity;
-    private boolean isCA;
+    private Role role;
+    private String commonName;
+    private String organizationName;
 
-    public AppUserDTO() {
+    public UserDTO() {
     }
 
-    public AppUserDTO(long id, String email, String password, String name, String surname, String address, boolean admin, boolean endEntity, boolean isCA) {
+    public UserDTO(long id, String email, String password, String name, String surname, String address, Role role, String commonName, String organizationName) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.name = name;
         this.surname = surname;
         this.address = address;
-        this.admin = admin;
-        this.endEntity = endEntity;
-        this.isCA = isCA;
+        this.role = role;
+        this.commonName = commonName;
+        this.organizationName = organizationName;
     }
 
-    public AppUserDTO(AppUser appUser) {
+    public UserDTO(User appUser) {
         this(appUser.getId(),
             appUser.getEmail(),
             appUser.getPassword(),
             appUser.getName(),
             appUser.getSurname(),
             appUser.getAddress(),
-            appUser.isAdmin(),
-            appUser.isEndEntity(),
-            appUser.isCA());
+            appUser.getRole(),
+            appUser.getCommonName(),
+            appUser.getOrganizationName());
     }
 
     public long getId() {
@@ -65,15 +66,15 @@ public class AppUserDTO {
         return address;
     }
 
-    public boolean isAdmin() {
-        return admin;
+    public Role getRole() {
+        return role;
     }
 
-    public boolean isEndEntity() {
-        return endEntity;
+    public String getCommonName() {
+        return commonName;
     }
 
-    public boolean isCA() {
-        return isCA;
+    public String getOrganizationName() {
+        return organizationName;
     }
 }

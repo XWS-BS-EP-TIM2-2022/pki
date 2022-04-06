@@ -1,13 +1,12 @@
 package com.example.PKI.controller;
 
-import com.example.PKI.dto.AppUserDTO;
+import com.example.PKI.dto.UserDTO;
 import com.example.PKI.dto.LoginDTO;
 import com.example.PKI.dto.LoginResponseDTO;
 import com.example.PKI.dto.UserTokenState;
-import com.example.PKI.model.AppUser;
-import com.example.PKI.service.AppUserServiceImpl;
+import com.example.PKI.model.User;
+import com.example.PKI.service.UserServiceImpl;
 import com.example.PKI.util.TokenUtils;
-import com.example.PKI.verification.VerificationToken;
 import com.example.PKI.verification.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -25,10 +24,10 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/users")
-public class AppUserController {
+public class UserController {
 
     @Autowired
-    private AppUserServiceImpl appUserService;
+    private UserServiceImpl appUserService;
     @Lazy
     private PasswordEncoder passwordEncoder;
     @Lazy
@@ -38,8 +37,9 @@ public class AppUserController {
     @Autowired
     private TokenUtils tokenUtils;
 
+    @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppUserDTO> save(@RequestBody AppUserDTO appUserDTO) {
+    public ResponseEntity<UserDTO> save(@RequestBody UserDTO appUserDTO) {
 
         if (appUserDTO.getEmail() == null || appUserDTO.getPassword() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -50,12 +50,11 @@ public class AppUserController {
         }
 
         //AppUser appUser = new AppUser(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.isAdmin(), appUserDTO.isEndEntity(), appUserDTO.isCA());
-        AppUser appUser = new AppUser(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.isAdmin(), appUserDTO.isEndEntity(), appUserDTO.isCA());
+        User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.getRole(), appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
         appUser = appUserService.save(appUser);
-        return new ResponseEntity<>(new AppUserDTO(appUser), HttpStatus.OK);
+        return new ResponseEntity<>(new UserDTO(appUser), HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO loginDTO) {
 
@@ -64,7 +63,7 @@ public class AppUserController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        AppUser appUser = (AppUser) authentication.getPrincipal();
+        User appUser = (User) authentication.getPrincipal();
         String jwt = tokenUtils.generateToken(appUser.getUsername());
         int expiresIn = tokenUtils.getExpiredIn();
         UserTokenState userTokenState = new UserTokenState(jwt, expiresIn);
@@ -73,30 +72,30 @@ public class AppUserController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Collection<AppUserDTO>> findAll() {
-        Collection<AppUser> appUsers = appUserService.findAll();
-        Collection<AppUserDTO> appUserDTOS = new ArrayList<>();
-        for (AppUser appUser : appUsers) {
-            appUserDTOS.add(new AppUserDTO(appUser));
+    public ResponseEntity<Collection<UserDTO>> findAll() {
+        Collection<User> appUsers = appUserService.findAll();
+        Collection<UserDTO> appUserDTOS = new ArrayList<>();
+        for (User appUser : appUsers) {
+            appUserDTOS.add(new UserDTO(appUser));
         }
 
         return new ResponseEntity<>(appUserDTOS, HttpStatus.OK);
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AppUserDTO> findOne(@PathVariable("id") long id) {
-        AppUser appUser = appUserService.findOne(id);
+    public ResponseEntity<UserDTO> findOne(@PathVariable("id") long id) {
+        User appUser = appUserService.findOne(id);
 
         if(appUser == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(new AppUserDTO(appUser), HttpStatus.OK);
+        return new ResponseEntity<>(new UserDTO(appUser), HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> remove(@PathVariable("id") long id) {
-        AppUser appUser = appUserService.findOne(id);
+        User appUser = appUserService.findOne(id);
         if(appUser == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -104,10 +103,9 @@ public class AppUserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update")
-    public ResponseEntity<AppUserDTO> update(@RequestBody AppUserDTO appUserDTO) {
-        AppUser appUser = appUserService.findOne(appUserDTO.getId());
+    public ResponseEntity<UserDTO> update(@RequestBody UserDTO appUserDTO) {
+        User appUser = appUserService.findOne(appUserDTO.getId());
 
         if(appUser == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -116,11 +114,11 @@ public class AppUserController {
         appUser.setName(appUserDTO.getName());
         appUser.setSurname(appUserDTO.getSurname());
         appUser.setAddress(appUserDTO.getAddress());
-        appUser.setAdmin(appUserDTO.isAdmin());
-        appUser.setEndEntity(appUserDTO.isEndEntity());
-        appUser.setCA(appUserDTO.isCA());
+        appUser.setRole(appUserDTO.getRole());
+        appUser.setCommonName(appUserDTO.getCommonName());
+        appUser.setOrganizationName((appUserDTO.getOrganizationName()));
 
         appUser = appUserService.save(appUser);
-        return new ResponseEntity<>(new AppUserDTO(appUser), HttpStatus.OK);
+        return new ResponseEntity<>(new UserDTO(appUser), HttpStatus.OK);
     }
 }

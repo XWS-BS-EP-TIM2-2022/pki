@@ -1,4 +1,4 @@
-package com.example.PKI.dtos;
+package com.example.PKI.dto;
 
 import java.util.Date;
 import java.util.List;
