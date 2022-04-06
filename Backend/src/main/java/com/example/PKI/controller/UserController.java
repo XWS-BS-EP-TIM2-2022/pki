@@ -1,16 +1,14 @@
 package com.example.PKI.controller;
 
-import com.example.PKI.dto.UserDTO;
 import com.example.PKI.dto.LoginDTO;
 import com.example.PKI.dto.LoginResponseDTO;
+import com.example.PKI.dto.UserDTO;
 import com.example.PKI.dto.UserTokenState;
 import com.example.PKI.model.User;
 import com.example.PKI.model.enumerations.Role;
 import com.example.PKI.service.UserServiceImpl;
 import com.example.PKI.util.TokenUtils;
-import com.example.PKI.verification.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +16,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @RestController
 @RequestMapping("/users")
@@ -29,11 +27,7 @@ public class UserController {
 
     @Autowired
     private UserServiceImpl appUserService;
-    @Lazy
-    private PasswordEncoder passwordEncoder;
-    @Lazy
-    private VerificationTokenService verificationTokenService;
-    @Lazy
+    @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
     private TokenUtils tokenUtils;
