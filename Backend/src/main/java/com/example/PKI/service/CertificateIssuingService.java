@@ -160,15 +160,12 @@ public class CertificateIssuingService {
         if(!file.exists())
         {
             keyStoreWriter.loadKeyStore(null, keyStorePassword.toCharArray());
-            //keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
+            keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
         }
         else
             keyStoreWriter.loadKeyStore(filePath, keyStorePassword.toCharArray());
-        //Certificate[] certificateChain = getCertificateChain(newCertificateDTO.getIssuerSerialNumber(), newCertificateDTO.getIsCA()); // srediti
-        var chain = new ArrayList<Certificate>();
-        //chain.add(newCertificate);
-       // chain.addAll(Arrays.asList(certificateChain));
-        keyStoreWriter.write(alias, issuerData.getPrivateKey(), subjectPassword.toCharArray(), newCertificate);
+        Certificate[] certificateChain = getCertificateChain(newCertificate, newCertificateDTO.getIssuerSerialNumber(), newCertificateDTO.getIsCA());
+        keyStoreWriter.write(alias, issuerData.getPrivateKey(), subjectPassword.toCharArray(), certificateChain);
         keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
 
         //adding new certificate to database
@@ -224,19 +221,21 @@ public class CertificateIssuingService {
         return builder.build();
     }
 
-    public Certificate[] getCertificateChain(String serialNumber, boolean isCA) throws KeyStoreException {
+    public Certificate[] getCertificateChain(Certificate newCert, String serialNumber, boolean isCA) throws KeyStoreException {
         KeyStore keyStore;
-        List<Certificate> ALChain = new ArrayList<>();
+        List<Certificate> finalChain = new ArrayList<>();
+        finalChain.add(newCert);
         if (!isCA) {
             keyStore = keystoreReader.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
             var EECertificate = (X509Certificate)keyStore.getCertificate(serialNumber);
-            ALChain.add(EECertificate);
-            serialNumber = EECertificate.getIssuerX500Principal().toString();
+            finalChain.add(EECertificate);
+            serialNumber = EECertificate.getIssuerX500Principal().toString(); // kom
         }
         keyStore = keystoreReader.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
-        ALChain.addAll(Arrays.asList(keyStore.getCertificateChain(serialNumber)));
-        Certificate[] VChain = new Certificate[ALChain.size()];
-        return ALChain.toArray(VChain);
+        if(keyStore.getCertificateChain(serialNumber) != null)
+            finalChain.addAll(Arrays.asList(keyStore.getCertificateChain(serialNumber)));
+
+        return finalChain.toArray(new Certificate[finalChain.size()]);
     }
 
 
