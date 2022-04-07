@@ -16,7 +16,7 @@ import java.util.Date;
 public class TokenUtils {
 
     // Izdavac tokena
-    @Value("fishing-booker")
+    @Value("pki")
     private String APP_NAME;
 
     // Tajna koju samo backend aplikacija treba da zna kako bi mogla da generise i proveri JWT https://jwt.io/

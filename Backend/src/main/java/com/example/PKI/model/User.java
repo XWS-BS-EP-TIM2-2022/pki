@@ -54,6 +54,7 @@ public class User implements UserDetails {
         this.role = role;
         this.commonName = commonName;
         this.organizationName = organizationName;
+        this.username = email;
     }
 
     public long getId() {

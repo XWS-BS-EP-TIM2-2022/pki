@@ -20,9 +20,9 @@ export class RegisterComponent implements OnInit {
         name: [],
         surname: [],
         address: [],
+        role: [],
         commonName: [],
-        organizationName: [],
-        appUserType: []
+        organizationName: []  
     });
   }
 

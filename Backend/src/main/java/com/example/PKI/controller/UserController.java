@@ -9,6 +9,7 @@ import com.example.PKI.model.enumerations.Role;
 import com.example.PKI.service.UserServiceImpl;
 import com.example.PKI.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ public class UserController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private TokenUtils tokenUtils;
+//    @Autowired
+//    private PasswordEncoder passwordEncoder;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> save(@RequestBody UserDTO appUserDTO) {
@@ -43,16 +47,26 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        //AppUser appUser = new AppUser(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.isAdmin(), appUserDTO.isEndEntity(), appUserDTO.isCA());
+//        if(appUserDTO.getRole() == Role.Intermediate) {
+//            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+//            appUser = appUserService.save(appUser);
+//            return new ResponseEntity<>(HttpStatus.OK);
+//        } else if(appUserDTO.getRole() == Role.EndUser) {
+//            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+//            appUser = appUserService.save(appUser);
+//            return new ResponseEntity<>(HttpStatus.OK);
+//        }
         if(appUserDTO.getRole() == Role.Intermediate) {
             User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
             appUser = appUserService.save(appUser);
+            return new ResponseEntity<>(HttpStatus.OK);
         } else if(appUserDTO.getRole() == Role.EndUser) {
             User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
             appUser = appUserService.save(appUser);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
@@ -64,7 +78,7 @@ public class UserController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         User appUser = (User) authentication.getPrincipal();
-        String jwt = tokenUtils.generateToken(appUser.getUsername());
+        String jwt = tokenUtils.generateToken(appUser.getEmail());
         int expiresIn = tokenUtils.getExpiredIn();
         UserTokenState userTokenState = new UserTokenState(jwt, expiresIn);
 
