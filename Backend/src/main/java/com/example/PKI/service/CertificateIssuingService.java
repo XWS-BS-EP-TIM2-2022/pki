@@ -19,10 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.security.*;
-import java.security.cert.Certificate;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 @Service
 public class CertificateIssuingService {
@@ -160,12 +164,11 @@ public class CertificateIssuingService {
         if(!file.exists())
         {
             keyStoreWriter.loadKeyStore(null, keyStorePassword.toCharArray());
-            keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
         }
         else
             keyStoreWriter.loadKeyStore(filePath, keyStorePassword.toCharArray());
-        Certificate[] certificateChain = createCertificateChain(newCertificate, newCertificateDTO.getIssuerSerialNumber());
-        keyStoreWriter.write(alias, issuerData.getPrivateKey(), subjectPassword.toCharArray(), certificateChain);
+
+        keyStoreWriter.write(alias, issuerData.getPrivateKey(), subjectPassword.toCharArray(), newCertificate);
         keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
 
         //adding new certificate to database
@@ -220,17 +223,4 @@ public class CertificateIssuingService {
         builder.addRDN(BCStyle.E, user.getEmail());
         return builder.build();
     }
-
-    public Certificate[] createCertificateChain(Certificate newCert, String serialNumber) throws KeyStoreException {
-        KeyStore keyStore;
-        List<Certificate> finalChain = new ArrayList<>();
-        finalChain.add(newCert);
-        keyStore = keystoreReader.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
-        if(keyStore.getCertificateChain(serialNumber) != null)
-            finalChain.addAll(Arrays.asList(keyStore.getCertificateChain(serialNumber)));
-
-        return finalChain.toArray(new Certificate[finalChain.size()]);
-    }
-
-
 }
