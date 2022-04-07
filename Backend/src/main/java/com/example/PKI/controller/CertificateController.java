@@ -1,6 +1,7 @@
 package com.example.PKI.controller;
 
 import com.example.PKI.dtos.NewCertificateDTO;
+import com.example.PKI.model.CertificateData;
 import com.example.PKI.service.CertificateIssuingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,9 +30,15 @@ public class CertificateController {
     }
 
     @PostMapping(value = "/createNewCertificate")
-    public ResponseEntity<String> createNewCertificate(@RequestBody NewCertificateDTO newCertificateDTO) throws KeyStoreException {
-        var createdCert = certificateIssuingService.issueNewCertificate(newCertificateDTO);
+    public ResponseEntity<String> createNewCertificate(@RequestBody NewCertificateDTO newCertificateDTO){
 
+        CertificateData createdCert = null;
+        try {
+            createdCert = certificateIssuingService.issueNewCertificate(newCertificateDTO);
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Certificate failed to create ex!", HttpStatus.BAD_REQUEST);
+        }
         if (createdCert == null)
             return new ResponseEntity<>("Certificate failed to create!", HttpStatus.BAD_REQUEST);
 

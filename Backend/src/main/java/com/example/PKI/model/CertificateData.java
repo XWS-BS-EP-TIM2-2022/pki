@@ -11,17 +11,17 @@ public class CertificateData {
     private Integer id;
     @Column(nullable = false, unique = true)
     private String serialNumber;
-    @Column(nullable = false)
+    @Column(nullable = true)
     public String signatureAlgorithm;
-    @Column(nullable = false)
+    @Column(nullable = true)
     public String issuer;
-    @Column(nullable = false)
+    @Column(nullable = true)
     public Date validFrom;
-    @Column(nullable = false)
+    @Column(nullable = true)
     public Date validTo;
-    @Column(nullable = false)
+    @Column(nullable = true)
     public String subject;
-    @Column(nullable = false)
+    @Column(nullable = true)
     private boolean isWithdrawn;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -40,6 +40,11 @@ public class CertificateData {
         this.subject = subject;
         this.isWithdrawn = isWithdrawn;
         this.userId = userId;
+    }
+
+    public CertificateData(String serialNumber, boolean isWithdrawn) {
+        this.serialNumber = serialNumber;
+        this.isWithdrawn = isWithdrawn;
     }
 
     public Integer getId() {

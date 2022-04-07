@@ -60,11 +60,11 @@ public class NewCertificateDTO {
         this.issuerId = issuerId;
     }
 
-    public boolean isCA() {
+    public boolean getIsCA() {
         return isCA;
     }
 
-    public void setCA(boolean CA) {
+    public void setIsCA(boolean CA) {
         isCA = CA;
     }
 }

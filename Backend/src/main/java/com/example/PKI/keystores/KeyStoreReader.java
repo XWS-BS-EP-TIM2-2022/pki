@@ -73,7 +73,7 @@ public class KeyStoreReader {
 	public Certificate readCertificate(String keyStoreFile, String keyStorePass, String alias) {
 		try {
 			//kreiramo instancu KeyStore
-			KeyStore ks = KeyStore.getInstance("JKS", "SUN");
+			KeyStore ks = KeyStore.getInstance("PKCS12", "SunJSSE");
 			//ucitavamo podatke
 			var file = new File(keyStoreFile);
 			if (!file.exists())
@@ -148,23 +148,5 @@ public class KeyStoreReader {
 		}
 
 		return null;
-	}
-
-	public IssuerData findCAbySerialNumber(String serialNumber, String fileName, char[] password){
-		try {
-			getKeyStore(fileName, password);
-			Key key = this.keyStore.getKey(serialNumber, serialNumber.toCharArray());
-			if (key instanceof PrivateKey) {
-				X509Certificate certificate = (X509Certificate) this.keyStore.getCertificate(serialNumber);
-				return new IssuerData((PrivateKey) key, new JcaX509CertificateHolder(certificate).getSubject());
-			}
-			else {
-				return null;
-			}
-		}
-		catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-			e.printStackTrace();
-			return null;
-		}
 	}
 }
