@@ -164,7 +164,7 @@ public class CertificateIssuingService {
         }
         else
             keyStoreWriter.loadKeyStore(filePath, keyStorePassword.toCharArray());
-        Certificate[] certificateChain = getCertificateChain(newCertificate, newCertificateDTO.getIssuerSerialNumber(), newCertificateDTO.getIsCA());
+        Certificate[] certificateChain = createCertificateChain(newCertificate, newCertificateDTO.getIssuerSerialNumber());
         keyStoreWriter.write(alias, issuerData.getPrivateKey(), subjectPassword.toCharArray(), certificateChain);
         keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
 
@@ -221,16 +221,10 @@ public class CertificateIssuingService {
         return builder.build();
     }
 
-    public Certificate[] getCertificateChain(Certificate newCert, String serialNumber, boolean isCA) throws KeyStoreException {
+    public Certificate[] createCertificateChain(Certificate newCert, String serialNumber) throws KeyStoreException {
         KeyStore keyStore;
         List<Certificate> finalChain = new ArrayList<>();
         finalChain.add(newCert);
-        if (!isCA) {
-            keyStore = keystoreReader.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
-            var EECertificate = (X509Certificate)keyStore.getCertificate(serialNumber);
-            finalChain.add(EECertificate);
-            serialNumber = EECertificate.getIssuerX500Principal().toString(); // kom
-        }
         keyStore = keystoreReader.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
         if(keyStore.getCertificateChain(serialNumber) != null)
             finalChain.addAll(Arrays.asList(keyStore.getCertificateChain(serialNumber)));
