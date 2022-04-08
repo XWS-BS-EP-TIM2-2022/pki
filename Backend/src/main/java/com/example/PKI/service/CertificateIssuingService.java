@@ -68,17 +68,17 @@ public class CertificateIssuingService {
        keyUsages.add(KeyUsage.keyEncipherment); //public key can be used for enciphering private key
        keyUsages.add(KeyUsage.cRLSign); //public key can used for verifying signatures on certificate revocation list
 
-       var rootAlias = admin.getUsername() + " root certificate";
+        var rootCertificate = certificateGenerator.generateCertificate(subject, issuer, keyUsages, true);
+        var rootAlias = admin.getUsername() + rootCertificate.getSerialNumber().toString();
 
-       if(rootAlreadyExists(rootAlias))
+        if(rootAlreadyExists(rootAlias))
            return null;
 
-       var rootCertificate = certificateGenerator.generateCertificate(subject, issuer, keyUsages, true);
+
        saveToKeyStore(issuer, rootAlias, rootCertificate);
 
         return certificateRepository.save(new Certificate(rootCertificate.getSerialNumber().toString(),
-               rootCertificate.getSigAlgName(), rootCertificate.getSerialNumber().toString(), rootCertificate.getNotBefore(),
-               rootCertificate.getNotAfter(), rootCertificate.getSerialNumber().toString(), false, admin));
+                rootCertificate.getIssuerDN().toString(), rootCertificate.getSubjectDN().toString(), false, admin));
    }
 
     private void saveToKeyStore(IssuerData issuer, String rootAlias, X509Certificate rootCertificate) {
