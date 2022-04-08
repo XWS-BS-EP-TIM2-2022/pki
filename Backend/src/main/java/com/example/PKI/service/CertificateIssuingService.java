@@ -3,14 +3,14 @@ package com.example.PKI.service;
 import com.example.PKI.certificates.CertificateGenerator;
 import com.example.PKI.data.IssuerData;
 import com.example.PKI.data.SubjectData;
-import com.example.PKI.dtos.NewCertificateDTO;
+import com.example.PKI.dto.NewCertificateDTO;
 import com.example.PKI.keystores.KeyStoreConfig;
 import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.keystores.KeyStoreWriter;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.model.User;
-import com.example.PKI.repositories.CertificateRepository;
-import com.example.PKI.repositories.UserRepository;
+import com.example.PKI.repository.CertificateRepository;
+import com.example.PKI.repository.UserRepository;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -113,9 +113,7 @@ public class CertificateIssuingService {
     }
 
     private User getAdmin() {
-        return userRepository.findAll().stream().filter(user -> user.getUsername().equals("admin"))
-                .findFirst()
-                .orElse(null);
+        return userRepository.getByUsername("admin");
     }
 
     private void verifyCertificate(PublicKey publicKey, X509Certificate certificate) {
@@ -243,7 +241,7 @@ public class CertificateIssuingService {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
         builder.addRDN(BCStyle.CN, user.getCommonName());
         builder.addRDN(BCStyle.SURNAME, user.getSurname());
-        builder.addRDN(BCStyle.GIVENNAME, user.getGivenName());
+        builder.addRDN(BCStyle.GIVENNAME, user.getName());
         builder.addRDN(BCStyle.O, user.getOrganizationName());
         builder.addRDN(BCStyle.E, user.getEmail());
         return builder.build();

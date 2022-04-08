@@ -26,13 +26,10 @@ public class CertificateGenerator {
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
-
-
-
 	public X509Certificate generateCustom(SubjectData subjectData, IssuerData issuerData){
-
 		return null;
 	}
+
 	public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, List<Integer> keyUsageValues,
 											   boolean isCA) {
 		try {

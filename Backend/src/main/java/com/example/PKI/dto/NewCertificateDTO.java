@@ -8,8 +8,8 @@ public class NewCertificateDTO {
     private Date validFrom;
     private Date validTo;
     private List<Integer> keyUsages;
-    private int subjectId;
-    private int issuerId;
+    private Long subjectId;
+    private Long issuerId;
     private boolean isCA;
     public List<Integer> addKeyUsage(Integer i){
          keyUsages.add(i);
@@ -47,19 +47,19 @@ public class NewCertificateDTO {
         this.keyUsages = keyUsages;
     }
 
-    public int getSubjectId() {
+    public Long getSubjectId() {
         return subjectId;
     }
 
-    public void setSubjectId(int subjectId) {
+    public void setSubjectId(Long subjectId) {
         this.subjectId = subjectId;
     }
 
-    public int getIssuerId() {
+    public Long getIssuerId() {
         return issuerId;
     }
 
-    public void setIssuerId(int issuerId) {
+    public void setIssuerId(Long issuerId) {
         this.issuerId = issuerId;
     }
 

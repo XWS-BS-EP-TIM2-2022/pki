@@ -1,6 +1,6 @@
 package com.example.PKI.controller;
 
-import com.example.PKI.dtos.NewCertificateDTO;
+import com.example.PKI.dto.NewCertificateDTO;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.service.CertificateIssuingService;
 import org.springframework.beans.factory.annotation.Autowired;

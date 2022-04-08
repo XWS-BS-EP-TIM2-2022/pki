@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class TestController {
-	@GetMapping("test")
+	@GetMapping("/test")
 	public ResponseEntity<?> test(){
 		return ResponseEntity.ok("OK");
 	}
