@@ -21,7 +21,7 @@ public class CertificateController {
 
     @PostMapping(value = "/createRoot")
     public ResponseEntity<String> createRootCert() {
-        var root = certificateIssuingService.issueCertificate();
+        var root = certificateIssuingService.issueRootCertificate();
 
         if (root == null)
             return new ResponseEntity<>("Root certificate already exists!", HttpStatus.BAD_REQUEST);

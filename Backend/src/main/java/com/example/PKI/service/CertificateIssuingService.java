@@ -19,14 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.math.BigInteger;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class CertificateIssuingService {
@@ -44,53 +44,129 @@ public class CertificateIssuingService {
         this.config = config;
     }
 
-    public CertificateData issueCertificate() {
-        var admin = userRepository.findAll().stream().filter(user -> user.getUsername().equals("admin"))
-                .findFirst()
-                .orElse(null);
+    public CertificateData issueRootCertificate() {
+        var admin = getAdmin();
+        BigInteger serialNumber = generateSerialNumber();
 
-        X500NameBuilder builder = getDataForSelfSigned(admin);
+        if (rootAlreadyExists(String.valueOf(serialNumber)))
+            return null;
+        KeyPair keyPair = generateKeys();
+        IssuerData issuer = new IssuerData(keyPair.getPrivate(), getDataForSelfSigned(admin).build());
 
-        var keyPair = generateKeys();
-        var issuer = new IssuerData(keyPair.getPrivate(), builder.build());
-
-        var serialNumber = System.currentTimeMillis();
-        var calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.add(Calendar.YEAR, -5);
-        var validFrom = calendar.getTime();
+        Date validFrom = calendar.getTime();
         calendar.add(Calendar.YEAR, 20);
-        var validTo = calendar.getTime();
+        Date validTo = calendar.getTime();
 
-        var subject = new SubjectData(keyPair.getPublic(),
+        SubjectData subject = new SubjectData(keyPair.getPublic(),
                 issuer.getX500name(),
-                Long.toString(serialNumber),
+                serialNumber,
                 validFrom,
                 validTo);
-
-        var keyUsages = new ArrayList<Integer>();
-        keyUsages.add(KeyUsage.digitalSignature); //can be used to verify digital signatures
-        keyUsages.add(KeyUsage.keyCertSign); //can be used to sign other certificates
-        keyUsages.add(KeyUsage.keyEncipherment); //public key can be used for enciphering private key
-        keyUsages.add(KeyUsage.cRLSign); //public key can used for verifying signatures on certificate revocation list
-        var rootAlias = admin.getEmail() + serialNumber;
-
-        if (rootAlreadyExists(rootAlias))
-            return null;
-
-        var rootCertificate = certificateGenerator.generateCertificate(subject, issuer, keyUsages, true);
-        saveToKeyStore(issuer, rootAlias, rootCertificate);
-
+        X509Certificate rootCertificate = certificateGenerator.generateCertificate(subject, issuer, initRootKeyUsages(), true);
+        this.verifyCertificate(keyPair.getPublic(), rootCertificate);
+        this.saveToRootKeyStore(String.valueOf(serialNumber), rootCertificate, keyPair.getPrivate());
         return certificateRepository.save(new CertificateData(rootCertificate.getSerialNumber().toString(),
                 rootCertificate.getSigAlgName(), rootCertificate.getSerialNumber().toString(), rootCertificate.getNotBefore(),
                 rootCertificate.getNotAfter(), rootCertificate.getSerialNumber().toString(), false, admin));
     }
 
-    private void saveToKeyStore(IssuerData issuer, String rootAlias, X509Certificate rootCertificate) {
+    public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws KeyStoreException {
+        IssuerData issuerData = getIssuerData(newCertificateDTO.getIssuerSerialNumber());
+        KeyPair keyPair = this.generateKeys();
+        BigInteger serialNumber = generateSerialNumber();
+        User subject = userRepository.findById(newCertificateDTO.getSubjectId()).get();
+        SubjectData subjectData = new SubjectData(keyPair.getPublic(),
+                this.getX500NameForUser(subject),
+                serialNumber,
+                newCertificateDTO.getValidFrom(),
+                newCertificateDTO.getValidTo());
+
+        X509Certificate cert = certificateGenerator.generateCertificate(subjectData, issuerData, newCertificateDTO.getKeyUsages(),
+                newCertificateDTO.getIsCA());
+        this.verifySignedCertificateSigne(newCertificateDTO, cert);
+        this.saveToKeyStore(cert.getSerialNumber().toString(), newCertificateDTO.getIsCA(), cert, keyPair.getPrivate());
+        return certificateRepository.save(new CertificateData(cert.getSerialNumber().toString(), false));
+    }
+
+    private ArrayList<Integer> initRootKeyUsages() {
+        var keyUsages = new ArrayList<Integer>();
+        keyUsages.add(KeyUsage.digitalSignature); //can be used to verify digital signatures
+        keyUsages.add(KeyUsage.keyCertSign); //can be used to sign other certificates
+        keyUsages.add(KeyUsage.keyEncipherment); //public key can be used for enciphering private key
+        keyUsages.add(KeyUsage.cRLSign); //public key can used for verifying signatures on certificate revocation list
+        return keyUsages;
+    }
+
+    private BigInteger generateSerialNumber() {
+        return new BigInteger(UUID.randomUUID().toString().replace("-", ""), 16);
+    }
+
+    private void verifySignedCertificateSigne(NewCertificateDTO newCertificateDTO, X509Certificate cert) throws KeyStoreException {
+        String issuerAlias = newCertificateDTO.getIssuerSerialNumber();
+        String keyStoreName = this.getKeyStoreNameByAlias(issuerAlias);
+        String keyStorePass = this.getKeyStorePasswordByAlias(issuerAlias);
+        X509Certificate issuerCert = (X509Certificate) keystoreReader.readCertificate(keyStoreName, keyStorePass, issuerAlias);
+        this.verifyCertificate(issuerCert.getPublicKey(), cert);
+    }
+
+    private User getAdmin() {
+        return userRepository.findAll().stream().filter(user -> user.getUsername().equals("admin"))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void verifyCertificate(PublicKey publicKey, X509Certificate certificate) {
+        try {
+            certificate.verify(publicKey);
+            System.out.println("Ispravan potpis");
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveToRootKeyStore(String rootAlias, X509Certificate rootCertificate, PrivateKey privateKey) {
         String keyPass = config.getRootCertPassword() + rootCertificate.getSerialNumber();
         keyStoreWriter.loadKeyStore(null, config.getRootCertPassword().toCharArray());
-        keyStoreWriter.write(rootAlias, issuer.getPrivateKey(), keyPass.toCharArray(), rootCertificate);
+        keyStoreWriter.write(rootAlias, privateKey, keyPass.toCharArray(), rootCertificate);
         keyStoreWriter.saveKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
+    }
+
+    private void saveToKeyStore(String alias, boolean isCa, X509Certificate certificate, PrivateKey privateKey) {
+        String subjectPassword = "";
+        String keyStorePassword = "";
+        String filePath = "";
+
+        if (isCa) {
+            filePath = config.getIntermediateCertKeystore();
+            keyStorePassword = config.getIntermediateCertPassword();
+        } else {
+            filePath = config.getEndCertKeystore();
+            keyStorePassword = config.getEndCertPassword();
+        }
+
+        subjectPassword = keyStorePassword + certificate.getSerialNumber();
+
+        // creating chain
+
+        File file = new File(filePath);
+        if (!file.exists()) {
+            keyStoreWriter.loadKeyStore(null, keyStorePassword.toCharArray());
+        } else
+            keyStoreWriter.loadKeyStore(filePath, keyStorePassword.toCharArray());
+
+        keyStoreWriter.write(alias, privateKey, subjectPassword.toCharArray(), certificate);
+        keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
     }
 
     private boolean rootAlreadyExists(String alias) {
@@ -111,71 +187,23 @@ public class CertificateIssuingService {
     private KeyPair generateKeys() {
         try {
             var generator = KeyPairGenerator.getInstance("RSA");
-            generator.initialize(2048);
-
+            SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+            generator.initialize(2048, random);
             return generator.generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
         }
-
         return null;
     }
 
-    public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws KeyStoreException {
-
-        if (!isDateValid(newCertificateDTO.getValidFrom(), newCertificateDTO.getValidTo()))
-            return null;
-
-        User subjectUser = userRepository.getById(newCertificateDTO.getSubjectId());
-        User issuerUser = userRepository.getById(newCertificateDTO.getIssuerId());
-
-        //get certificate chain and validate
-        String issuerAlias = issuerUser.getEmail() + newCertificateDTO.getIssuerSerialNumber(); // issuer alias ovo??
-        String issuerPassword = getKeyStorePasswordByAlias(issuerAlias) + newCertificateDTO.getIssuerSerialNumber(); // key pass??
-
-
-        //generating new certificate
-        KeyPair keyPair = generateKeys();
-        String serialNumber = Long.toString(System.currentTimeMillis());
-        SubjectData subjectData = new SubjectData(keyPair.getPublic(), getX500NameForUser(subjectUser),
-                serialNumber, newCertificateDTO.getValidFrom(), newCertificateDTO.getValidTo());
-        IssuerData issuerData = keystoreReader.readIssuerFromStore(getKeyStoreNameByAlias(issuerAlias), issuerAlias, getKeyStorePasswordByAlias(issuerAlias).toCharArray(), issuerPassword.toCharArray());
-
-        var newCertificate = certificateGenerator.generateCertificate(subjectData, issuerData, newCertificateDTO.getKeyUsages(), newCertificateDTO.getIsCA());
-
-        //saving new certificate to keystore
-        String subjectPassword = "";
-        String keyStorePassword = "";
-        String filePath = "";
-        String alias = subjectUser.getEmail() + serialNumber;
-        if(newCertificateDTO.getIsCA()){
-            filePath = config.getIntermediateCertKeystore();
-            keyStorePassword = config.getIntermediateCertPassword();
-        }else{
-            filePath = config.getEndCertKeystore();
-            keyStorePassword = config.getEndCertPassword();
-        }
-
-        subjectPassword = keyStorePassword + serialNumber;
-
-        // creating chain
-
-        File file = new File(filePath);
-        if(!file.exists())
-        {
-            keyStoreWriter.loadKeyStore(null, keyStorePassword.toCharArray());
-        }
-        else
-            keyStoreWriter.loadKeyStore(filePath, keyStorePassword.toCharArray());
-
-        keyStoreWriter.write(alias, issuerData.getPrivateKey(), subjectPassword.toCharArray(), newCertificate);
-        keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
-
-        //adding new certificate to database
-        CertificateData newCertificateForDB = new CertificateData(serialNumber, false);
-        var addedCert = certificateRepository.save(newCertificateForDB);
-
-        return addedCert;
+    private IssuerData getIssuerData(String serialNumber) throws KeyStoreException {
+        String keyStoreName = this.getKeyStoreNameByAlias(serialNumber);
+        String keyStorePass = this.getKeyStorePasswordByAlias(serialNumber);
+        String issuerPassword = getKeyStorePasswordByAlias(serialNumber) + serialNumber;
+        IssuerData issuerData = keystoreReader.readIssuerFromStore(keyStoreName, serialNumber, keyStorePass.toCharArray(), issuerPassword.toCharArray());
+        return issuerData;
     }
 
     private String getKeyStoreNameByAlias(String issuerAlias) throws KeyStoreException {
@@ -195,6 +223,7 @@ public class CertificateIssuingService {
     }
 
     private String getKeyStorePasswordByAlias(String issuerAlias) throws KeyStoreException {
+        //return config.getIntermediateCertPassword();
         var rootKS = keystoreReader.getKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
         if (rootKS.containsAlias(issuerAlias))
             return config.getRootCertPassword();
@@ -208,10 +237,6 @@ public class CertificateIssuingService {
             return config.getEndCertPassword();
 
         return null;
-    }
-
-    private boolean isDateValid(Date validFrom, Date validTo) {
-        return validTo.compareTo(validFrom) > 0;
     }
 
     private X500Name getX500NameForUser(User user) {

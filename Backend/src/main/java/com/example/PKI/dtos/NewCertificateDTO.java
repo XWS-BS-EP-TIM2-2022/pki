@@ -11,7 +11,10 @@ public class NewCertificateDTO {
     private int subjectId;
     private int issuerId;
     private boolean isCA;
-
+    public List<Integer> addKeyUsage(Integer i){
+         keyUsages.add(i);
+         return keyUsages;
+    }
     public String getIssuerSerialNumber() {
         return issuerSerialNumber;
     }

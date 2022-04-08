@@ -26,6 +26,13 @@ public class CertificateGenerator {
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
+
+
+
+	public X509Certificate generateCustom(SubjectData subjectData, IssuerData issuerData){
+
+		return null;
+	}
 	public X509Certificate generateCertificate(SubjectData subjectData, IssuerData issuerData, List<Integer> keyUsageValues,
 											   boolean isCA) {
 		try {
@@ -36,7 +43,7 @@ public class CertificateGenerator {
 			ContentSigner contentSigner = builder.build(issuerData.getPrivateKey());
 
 			X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(issuerData.getX500name(),
-					new BigInteger(subjectData.getSerialNumber()),
+					subjectData.getSerialNumber(),
 					subjectData.getStartDate(),
 					subjectData.getEndDate(),
 					subjectData.getX500name(),
