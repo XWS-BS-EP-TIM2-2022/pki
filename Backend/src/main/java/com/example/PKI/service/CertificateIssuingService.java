@@ -178,7 +178,7 @@ public class CertificateIssuingService {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
         builder.addRDN(BCStyle.CN, "XWS Root Cert");
         builder.addRDN(BCStyle.SURNAME, admin.getSurname());
-        builder.addRDN(BCStyle.GIVENNAME, admin.getGivenName());
+        builder.addRDN(BCStyle.NAME, admin.getName());
         builder.addRDN(BCStyle.O, admin.getOrganizationName());
         builder.addRDN(BCStyle.E, admin.getEmail());
         return builder;
