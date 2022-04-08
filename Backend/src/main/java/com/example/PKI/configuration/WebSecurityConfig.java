@@ -25,8 +25,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
    @Autowired
    private TokenUtils tokenUtils;
 
-   //@Bean
-   public PasswordEncoder passwordEncoder() {
+   @Bean
+   public static PasswordEncoder passwordEncoder() {
        return new BCryptPasswordEncoder();
    }
 

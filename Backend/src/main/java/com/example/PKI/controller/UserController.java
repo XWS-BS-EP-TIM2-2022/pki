@@ -33,8 +33,8 @@ public class UserController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private TokenUtils tokenUtils;
-//    @Autowired
-//    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> save(@RequestBody UserDTO appUserDTO) {
@@ -47,24 +47,24 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-//        if(appUserDTO.getRole() == Role.Intermediate) {
-//            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
-//            appUser = appUserService.save(appUser);
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        } else if(appUserDTO.getRole() == Role.EndUser) {
-//            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
-//            appUser = appUserService.save(appUser);
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        }
         if(appUserDTO.getRole() == Role.Intermediate) {
-            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
             appUser = appUserService.save(appUser);
             return new ResponseEntity<>(HttpStatus.OK);
         } else if(appUserDTO.getRole() == Role.EndUser) {
-            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
             appUser = appUserService.save(appUser);
             return new ResponseEntity<>(HttpStatus.OK);
         }
+//        if(appUserDTO.getRole() == Role.Intermediate) {
+//            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+//            appUser = appUserService.save(appUser);
+//            return new ResponseEntity<>(HttpStatus.OK);
+//        } else if(appUserDTO.getRole() == Role.EndUser) {
+//            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+//            appUser = appUserService.save(appUser);
+//            return new ResponseEntity<>(HttpStatus.OK);
+//        }
 
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
