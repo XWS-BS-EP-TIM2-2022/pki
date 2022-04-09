@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.cert.*;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -74,6 +74,8 @@ public class CertificateIssuingService {
     }
 
     public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws KeyStoreException {
+        //validate
+
         IssuerData issuerData = getIssuerData(newCertificateDTO.getIssuerSerialNumber());
         KeyPair keyPair = this.generateKeys();
         BigInteger serialNumber = generateSerialNumber();
@@ -106,9 +108,7 @@ public class CertificateIssuingService {
 
     private void verifySignedCertificateSigne(NewCertificateDTO newCertificateDTO, X509Certificate cert) throws KeyStoreException {
         String issuerAlias = newCertificateDTO.getIssuerSerialNumber();
-        String keyStoreName = this.getKeyStoreNameByAlias(issuerAlias);
-        String keyStorePass = this.getKeyStorePasswordByAlias(issuerAlias);
-        X509Certificate issuerCert = (X509Certificate) keystoreReader.readCertificate(keyStoreName, keyStorePass, issuerAlias);
+        X509Certificate issuerCert = getIssuerCertificte(issuerAlias);
         this.verifyCertificate(issuerCert.getPublicKey(), cert);
     }
 
@@ -154,8 +154,6 @@ public class CertificateIssuingService {
         }
 
         subjectPassword = keyStorePassword + certificate.getSerialNumber();
-
-        // creating chain
 
         File file = new File(filePath);
         if (!file.exists()) {
@@ -245,5 +243,76 @@ public class CertificateIssuingService {
         builder.addRDN(BCStyle.O, user.getOrganizationName());
         builder.addRDN(BCStyle.E, user.getEmail());
         return builder.build();
+    }
+
+    private X509Certificate getIssuerCertificte(String issuerAlias) throws KeyStoreException {
+        String keyStoreName = this.getKeyStoreNameByAlias(issuerAlias);
+        String keyStorePass = this.getKeyStorePasswordByAlias(issuerAlias);
+        return (X509Certificate) keystoreReader.readCertificate(keyStoreName, keyStorePass, issuerAlias);
+    }
+
+    private boolean isIssuerCertificateValid(String issuerAlias) throws KeyStoreException {
+        String keyStorePass = getKeyStorePasswordByAlias(issuerAlias);
+        String keyStoreName = getKeyStoreNameByAlias(issuerAlias);
+        KeyStore keyStore = keystoreReader.getKeyStore(keyStoreName, keyStorePass.toCharArray()); //pokupi li sve?
+
+        Certificate[] certificates = keyStore.getCertificateChain(issuerAlias);
+        X509Certificate certificate;
+
+        try{
+        for (int i = certificates.length - 1; i >= 0; i--) {
+            certificate = (X509Certificate) certificates[i];
+
+            // is certificate revoked? ocsp.isCertRevoked(certificate);
+
+            if(i != 0) {
+                X509Certificate childCertificate = (X509Certificate) certificates[i - 1];
+                childCertificate.verify(certificate.getPublicKey());
+            }
+            certificate.checkValidity();
+        }
+        }catch (CertificateException | NoSuchAlgorithmException | SignatureException | NoSuchProviderException | InvalidKeyException e) {
+            //e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private boolean canBeUsedForSigning(String issuerAlias) throws KeyStoreException {
+        X509Certificate cert = getIssuerCertificte(issuerAlias);
+        try {
+            for (String keyUsage : cert.getExtendedKeyUsage()) {
+                if(keyUsage.equals("keyCertSign")) //??
+                    return true;
+            }
+        } catch (CertificateParsingException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private boolean isDateValid(NewCertificateDTO newCertificate) throws KeyStoreException {
+        X509Certificate cert = getIssuerCertificte(newCertificate.getIssuerSerialNumber());
+        try {
+            cert.checkValidity(newCertificate.getValidFrom());
+            cert.checkValidity(newCertificate.getValidTo());
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+            //e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private boolean checkIssuerAndSubject(NewCertificateDTO newCertificate) {
+        User subject = userRepository.getById(newCertificate.getSubjectId());
+        User issuer = userRepository.getById(newCertificate.getIssuerId());
+
+        if(subject.getUsername().equals("") || issuer.getUsername().equals("")) // postoje li u bazi
+            return false;
+
+        if(subject.getUsername().equals(issuer.getUsername())) //ne mozemo sami sebi izdati?
+            return false;
+
+        return true;
     }
 }
