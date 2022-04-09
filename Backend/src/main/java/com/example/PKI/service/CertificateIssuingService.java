@@ -14,6 +14,7 @@ import com.example.PKI.repository.UserRepository;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,7 +75,9 @@ public class CertificateIssuingService {
     }
 
     public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws KeyStoreException {
-        //validate
+
+        if(!canNewCertificateBeIssued(newCertificateDTO))
+            return null;
 
         IssuerData issuerData = getIssuerData(newCertificateDTO.getIssuerSerialNumber());
         KeyPair keyPair = this.generateKeys();
@@ -260,17 +263,17 @@ public class CertificateIssuingService {
         X509Certificate certificate;
 
         try{
-        for (int i = certificates.length - 1; i >= 0; i--) {
-            certificate = (X509Certificate) certificates[i];
+            for (int i = certificates.length - 1; i >= 0; i--) {
+                certificate = (X509Certificate) certificates[i];
 
-            // is certificate revoked? ocsp.isCertRevoked(certificate);
+                // is certificate revoked? ocsp.isCertRevoked(certificate);
 
-            if(i != 0) {
-                X509Certificate childCertificate = (X509Certificate) certificates[i - 1];
-                childCertificate.verify(certificate.getPublicKey());
+                if(i != 0) {
+                    X509Certificate childCertificate = (X509Certificate) certificates[i - 1];
+                    childCertificate.verify(certificate.getPublicKey());
+                }
+                certificate.checkValidity();
             }
-            certificate.checkValidity();
-        }
         }catch (CertificateException | NoSuchAlgorithmException | SignatureException | NoSuchProviderException | InvalidKeyException e) {
             //e.printStackTrace();
             return false;
@@ -280,15 +283,7 @@ public class CertificateIssuingService {
 
     private boolean canBeUsedForSigning(String issuerAlias) throws KeyStoreException {
         X509Certificate cert = getIssuerCertificte(issuerAlias);
-        try {
-            for (String keyUsage : cert.getExtendedKeyUsage()) {
-                if(keyUsage.equals("keyCertSign")) //??
-                    return true;
-            }
-        } catch (CertificateParsingException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return cert.getKeyUsage()[5];
     }
 
     private boolean isDateValid(NewCertificateDTO newCertificate) throws KeyStoreException {
@@ -303,14 +298,12 @@ public class CertificateIssuingService {
         return true;
     }
 
-    private boolean checkIssuerAndSubject(NewCertificateDTO newCertificate) {
-        User subject = userRepository.getById(newCertificate.getSubjectId());
-        User issuer = userRepository.getById(newCertificate.getIssuerId());
-
-        if(subject.getUsername().equals("") || issuer.getUsername().equals("")) // postoje li u bazi
+    private boolean canNewCertificateBeIssued(NewCertificateDTO newCertificate) throws KeyStoreException {
+        if(!isIssuerCertificateValid(newCertificate.getIssuerSerialNumber()))
             return false;
-
-        if(subject.getUsername().equals(issuer.getUsername())) //ne mozemo sami sebi izdati?
+        if(!canBeUsedForSigning(newCertificate.getIssuerSerialNumber()))
+            return false;
+        if(!isDateValid(newCertificate))
             return false;
 
         return true;
