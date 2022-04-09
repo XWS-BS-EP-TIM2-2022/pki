@@ -1,5 +1,6 @@
 package com.example.PKI.data;
 
+import java.math.BigInteger;
 import java.security.PublicKey;
 import java.util.Date;
 
@@ -9,7 +10,7 @@ public class SubjectData {
 
 	private PublicKey publicKey;
 	private X500Name x500name;
-	private String serialNumber;
+	private BigInteger serialNumber;
 	private Date startDate;
 	private Date endDate;
 
@@ -17,7 +18,7 @@ public class SubjectData {
 
 	}
 
-	public SubjectData(PublicKey publicKey, X500Name x500name, String serialNumber, Date startDate, Date endDate) {
+	public SubjectData(PublicKey publicKey, X500Name x500name, BigInteger serialNumber, Date startDate, Date endDate) {
 		this.publicKey = publicKey;
 		this.x500name = x500name;
 		this.serialNumber = serialNumber;
@@ -41,11 +42,11 @@ public class SubjectData {
 		this.publicKey = publicKey;
 	}
 
-	public String getSerialNumber() {
+	public BigInteger getSerialNumber() {
 		return serialNumber;
 	}
 
-	public void setSerialNumber(String serialNumber) {
+	public void setSerialNumber(BigInteger serialNumber) {
 		this.serialNumber = serialNumber;
 	}
 

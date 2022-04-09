@@ -1,12 +1,7 @@
 package com.example.PKI.keystores;
 
 import java.io.*;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -24,24 +19,25 @@ public class KeyStoreReader {
 	// - Privatni kljucevi
 	// - Tajni kljucevi, koji se koriste u simetricnima siframa
 	private KeyStore keyStore;
-	
+
 	public KeyStoreReader() {
 		try {
-			keyStore = KeyStore.getInstance("JKS", "SUN");
+			keyStore = KeyStore.getInstance("PKCS12", "SunJSSE");
 		} catch (KeyStoreException e) {
 			e.printStackTrace();
 		} catch (NoSuchProviderException e) {
 			e.printStackTrace();
 		}
 	}
+
 	/**
 	 * Zadatak ove funkcije jeste da ucita podatke o izdavaocu i odgovarajuci privatni kljuc.
 	 * Ovi podaci se mogu iskoristiti da se novi sertifikati izdaju.
-	 * 
+	 *
 	 * @param keyStoreFile - datoteka odakle se citaju podaci
-	 * @param alias - alias putem kog se identifikuje sertifikat izdavaoca
-	 * @param password - lozinka koja je neophodna da se otvori key store
-	 * @param keyPass - lozinka koja je neophodna da se izvuce privatni kljuc
+	 * @param alias        - alias putem kog se identifikuje sertifikat izdavaoca
+	 * @param password     - lozinka koja je neophodna da se otvori key store
+	 * @param keyPass      - lozinka koja je neophodna da se izvuce privatni kljuc
 	 * @return - podatke o izdavaocu i odgovarajuci privatni kljuc
 	 */
 	public IssuerData readIssuerFromStore(String keyStoreFile, String alias, char[] password, char[] keyPass) {
@@ -71,22 +67,22 @@ public class KeyStoreReader {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Ucitava sertifikat is KS fajla
 	 */
-    public Certificate readCertificate(String keyStoreFile, String keyStorePass, String alias) {
+	public Certificate readCertificate(String keyStoreFile, String keyStorePass, String alias) {
 		try {
 			//kreiramo instancu KeyStore
-			KeyStore ks = KeyStore.getInstance("JKS", "SUN");
+			KeyStore ks = KeyStore.getInstance("PKCS12", "SunJSSE");
 			//ucitavamo podatke
 			var file = new File(keyStoreFile);
 			if (!file.exists())
 				return null;
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(keyStoreFile));
 			ks.load(in, keyStorePass.toCharArray());
-			
-			if(ks.isKeyEntry(alias)) {
+
+			if (ks.isKeyEntry(alias)) {
 				Certificate cert = ks.getCertificate(alias);
 				return cert;
 			}
@@ -105,19 +101,19 @@ public class KeyStoreReader {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Ucitava privatni kljuc is KS fajla
 	 */
 	public PrivateKey readPrivateKey(String keyStoreFile, String keyStorePass, String alias, String pass) {
 		try {
 			//kreiramo instancu KeyStore
-			KeyStore ks = KeyStore.getInstance("JKS", "SUN");
+			KeyStore ks = KeyStore.getInstance("PKCS12", "SunJSSE");
 			//ucitavamo podatke
 			BufferedInputStream in = new BufferedInputStream(new FileInputStream(keyStoreFile));
 			ks.load(in, keyStorePass.toCharArray());
-			
-			if(ks.isKeyEntry(alias)) {
+
+			if (ks.isKeyEntry(alias)) {
 				PrivateKey pk = (PrivateKey) ks.getKey(alias, pass.toCharArray());
 				return pk;
 			}
@@ -136,6 +132,22 @@ public class KeyStoreReader {
 		} catch (UnrecoverableKeyException e) {
 			e.printStackTrace();
 		}
+		return null;
+	}
+
+	public KeyStore getKeyStore(String fileName, char[] password) {
+		try {
+
+			if (fileName != null) {
+				keyStore.load(new FileInputStream(fileName), password);
+			}
+			return keyStore;
+		} catch (NoSuchAlgorithmException | CertificateException | FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		return null;
 	}
 }

@@ -75,6 +75,10 @@
               "browserTarget": "pki-client:build:development"
             }
           },
+          "options": {
+            "browserTarget": "your-application-name:build",
+            "proxyConfig": "src/proxy.conf.json"
+          },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {

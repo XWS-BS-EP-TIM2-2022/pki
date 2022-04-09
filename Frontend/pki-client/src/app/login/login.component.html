@@ -1,0 +1,19 @@
+<div class="center">
+  <h1>Login</h1>
+  <form method="post" [formGroup]="this.myFormGroup">
+    <div class="txt_field">
+      <input type="email" id="email" placeholder="Email" formControlName="email">
+      <span></span>
+      <label>Username</label>
+    </div>
+    <div class="txt_field">
+      <input type="password" id="password" placeholder="Password" formControlName="password">
+      <span></span>
+      <label>Password</label>
+    </div>
+    <input type="submit" (click)="onClickSubmit()" value="Login">
+    <div class="signup_link">
+      Not a member? <a [routerLink]="['/register']">Register</a>
+    </div>
+  </form>
+</div>
