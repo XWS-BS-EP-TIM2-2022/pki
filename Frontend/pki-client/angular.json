@@ -76,8 +76,7 @@
             }
           },
           "options": {
-            "browserTarget": "your-application-name:build",
-            "proxyConfig": "src/proxy.conf.json"
+            "browserTarget": "your-application-name:build"
           },
           "defaultConfiguration": "development"
         },
