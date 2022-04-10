@@ -34,7 +34,6 @@ public class CertificateIssuingService {
     private KeyStoreWriter keyStoreWriter = new KeyStoreWriter();
     private KeyStoreReader keystoreReader = new KeyStoreReader();
     private KeyStoreConfig config;
-
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -69,8 +68,8 @@ public class CertificateIssuingService {
         this.verifyCertificate(keyPair.getPublic(), rootCertificate);
         this.saveToRootKeyStore(String.valueOf(serialNumber), rootCertificate, keyPair.getPrivate());
         return certificateRepository.save(new CertificateData(rootCertificate.getSerialNumber().toString(),
-                rootCertificate.getSigAlgName(), rootCertificate.getSerialNumber().toString(), rootCertificate.getNotBefore(),
-                rootCertificate.getNotAfter(), rootCertificate.getSerialNumber().toString(), false, admin));
+                                                                admin.getEmail(),admin.getEmail(),
+                                                                    admin));
     }
 
     public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws KeyStoreException {
@@ -83,12 +82,13 @@ public class CertificateIssuingService {
                 serialNumber,
                 newCertificateDTO.getValidFrom(),
                 newCertificateDTO.getValidTo());
-
+        String issuerEmail= String.valueOf(issuerData.getX500name().getRDNs(BCStyle.E)[0].getFirst().getValue());
         X509Certificate cert = certificateGenerator.generateCertificate(subjectData, issuerData, newCertificateDTO.getKeyUsages(),
                 newCertificateDTO.getIsCA());
         this.verifySignedCertificateSigne(newCertificateDTO, cert);
         this.saveToKeyStore(cert.getSerialNumber().toString(), newCertificateDTO.getIsCA(), cert, keyPair.getPrivate());
-        return certificateRepository.save(new CertificateData(cert.getSerialNumber().toString(), false));
+        return certificateRepository.save(new CertificateData(cert.getSerialNumber().toString(),issuerEmail,
+                subject.getEmail(),subject));
     }
 
     private ArrayList<Integer> initRootKeyUsages() {
@@ -106,8 +106,8 @@ public class CertificateIssuingService {
 
     private void verifySignedCertificateSigne(NewCertificateDTO newCertificateDTO, X509Certificate cert) throws KeyStoreException {
         String issuerAlias = newCertificateDTO.getIssuerSerialNumber();
-        String keyStoreName = this.getKeyStoreNameByAlias(issuerAlias);
-        String keyStorePass = this.getKeyStorePasswordByAlias(issuerAlias);
+        String keyStoreName = keystoreReader.getKeyStoreNameByAlias(issuerAlias);
+        String keyStorePass = keystoreReader.getKeyStorePasswordByAlias(issuerAlias);
         X509Certificate issuerCert = (X509Certificate) keystoreReader.readCertificate(keyStoreName, keyStorePass, issuerAlias);
         this.verifyCertificate(issuerCert.getPublicKey(), cert);
     }
@@ -197,45 +197,14 @@ public class CertificateIssuingService {
     }
 
     private IssuerData getIssuerData(String serialNumber) throws KeyStoreException {
-        String keyStoreName = this.getKeyStoreNameByAlias(serialNumber);
-        String keyStorePass = this.getKeyStorePasswordByAlias(serialNumber);
-        String issuerPassword = getKeyStorePasswordByAlias(serialNumber) + serialNumber;
+        String keyStoreName = keystoreReader.getKeyStoreNameByAlias(serialNumber);
+        String keyStorePass = keystoreReader.getKeyStorePasswordByAlias(serialNumber);
+        String issuerPassword = keystoreReader.getKeyStorePasswordByAlias(serialNumber) + serialNumber;
         IssuerData issuerData = keystoreReader.readIssuerFromStore(keyStoreName, serialNumber, keyStorePass.toCharArray(), issuerPassword.toCharArray());
         return issuerData;
     }
 
-    private String getKeyStoreNameByAlias(String issuerAlias) throws KeyStoreException {
-        var rootKS = keystoreReader.getKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
-        if (rootKS.containsAlias(issuerAlias))
-            return config.getRootCertKeystore();
 
-        var intermediateKS = keystoreReader.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
-        if (intermediateKS.containsAlias(issuerAlias))
-            return config.getIntermediateCertKeystore();
-
-        var endKS = keystoreReader.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
-        if (endKS.containsAlias(issuerAlias))
-            return config.getEndCertKeystore();
-
-        return null;
-    }
-
-    private String getKeyStorePasswordByAlias(String issuerAlias) throws KeyStoreException {
-        //return config.getIntermediateCertPassword();
-        var rootKS = keystoreReader.getKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
-        if (rootKS.containsAlias(issuerAlias))
-            return config.getRootCertPassword();
-
-        var intermediateKS = keystoreReader.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
-        if (intermediateKS.containsAlias(issuerAlias))
-            return config.getIntermediateCertPassword();
-
-        var endKS = keystoreReader.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
-        if (endKS.containsAlias(issuerAlias))
-            return config.getEndCertPassword();
-
-        return null;
-    }
 
     private X500Name getX500NameForUser(User user) {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
