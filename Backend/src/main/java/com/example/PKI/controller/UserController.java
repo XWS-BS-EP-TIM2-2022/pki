@@ -6,6 +6,7 @@ import com.example.PKI.dto.UserDTO;
 import com.example.PKI.dto.UserTokenState;
 import com.example.PKI.model.User;
 import com.example.PKI.model.enumerations.Role;
+import com.example.PKI.security.TokenBasedAuthentication;
 import com.example.PKI.service.UserServiceImpl;
 import com.example.PKI.util.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,11 +49,11 @@ public class UserController {
         }
 
         if(appUserDTO.getRole() == Role.Intermediate) {
-            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
             appUser = appUserService.save(appUser);
             return new ResponseEntity<>(HttpStatus.OK);
         } else if(appUserDTO.getRole() == Role.EndUser) {
-            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), passwordEncoder.encode(appUserDTO.getPassword()), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(),appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
             appUser = appUserService.save(appUser);
             return new ResponseEntity<>(HttpStatus.OK);
         }
@@ -125,5 +126,12 @@ public class UserController {
 
         appUser = appUserService.save(appUser);
         return new ResponseEntity<>(new UserDTO(appUser), HttpStatus.OK);
+    }
+
+    public static User getLoggedinUser(){
+
+        var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return (User) principal;
     }
 }
