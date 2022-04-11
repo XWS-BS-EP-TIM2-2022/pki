@@ -1,8 +1,7 @@
 package com.example.PKI.model;
 
 import com.example.PKI.model.enumerations.CertificateLevel;
-
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 
@@ -11,8 +10,9 @@ import javax.persistence.*;
 public class CertificateData {
     @Id
     private String serialNumber;
-    public String issuer;
-    public String subject;
+    public String issuerEmail;
+    public String issuerCertificateSerialNum;
+    public String subjectEmail;
     private CertificateLevel level;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
@@ -20,11 +20,21 @@ public class CertificateData {
 
     public CertificateData() {}
 
-    public CertificateData(String serialNumber, String issuer,String subject, User user) {
+    public CertificateData(String serialNumber, String issuerEmail, String issuerCertificateSerialNum, String subjectEmail, CertificateLevel level, User user) {
         this.serialNumber = serialNumber;
-        this.issuer = issuer;
-        this.subject = subject;
+        this.issuerEmail = issuerEmail;
+        this.issuerCertificateSerialNum = issuerCertificateSerialNum;
+        this.subjectEmail = subjectEmail;
+        this.level = level;
         this.user = user;
+    }
+
+    public String getIssuerCertificateSerialNum() {
+        return issuerCertificateSerialNum;
+    }
+
+    public void setIssuerCertificateSerialNum(String issuerCertificateSerialNum) {
+        this.issuerCertificateSerialNum = issuerCertificateSerialNum;
     }
 
     public CertificateData(String serialNumber) {
@@ -39,20 +49,20 @@ public class CertificateData {
         this.serialNumber = serialNumber;
     }
 
-    public String getIssuer() {
-        return issuer;
+    public String getIssuerEmail() {
+        return issuerEmail;
     }
 
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
+    public void setIssuerEmail(String issuerEmail) {
+        this.issuerEmail = issuerEmail;
     }
 
-    public String getSubject() {
-        return subject;
+    public String getSubjectEmail() {
+        return subjectEmail;
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
+    public void setSubjectEmail(String subjectEmail) {
+        this.subjectEmail = subjectEmail;
     }
 
     public User getUser() {
@@ -67,7 +77,18 @@ public class CertificateData {
         return level;
     }
 
-    public void setLevel(CertificateLevel level) {
+    public CertificateData setLevel(CertificateLevel level) {
         this.level = level;
+        return this;
+    }
+
+    @JsonIgnore
+    public boolean isRoot(){
+        return level.equals(CertificateLevel.Root);
+    }
+
+    @JsonIgnore
+    public boolean isEndUser(){
+        return level.equals(CertificateLevel.End);
     }
 }

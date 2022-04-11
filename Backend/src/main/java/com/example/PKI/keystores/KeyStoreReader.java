@@ -167,6 +167,18 @@ public class KeyStoreReader {
 		return null;
 	}
 
+	public IssuerData getIssuerData(String serialNumber) throws KeyStoreException {
+		String keyStoreName = this.getKeyStoreNameByAlias(serialNumber);
+		String keyStorePass = this.getKeyStorePasswordByAlias(serialNumber);
+		String issuerPassword = this.getKeyStorePasswordByAlias(serialNumber) + serialNumber;
+		IssuerData issuerData = this.readIssuerFromStore(keyStoreName, serialNumber, keyStorePass.toCharArray(), issuerPassword.toCharArray());
+		return issuerData;
+	}
+
+	public boolean rootAlreadyExists(String alias) {
+		var c = this.readCertificate(config.getRootCertKeystore(), config.getRootCertPassword(), alias);
+		return c != null;
+	}
 
 	public String getKeyStorePasswordByAlias(String issuerAlias) throws KeyStoreException {
 		//return config.getIntermediateCertPassword();

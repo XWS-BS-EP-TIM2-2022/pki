@@ -39,8 +39,7 @@ public class OcspServerServiceImpl implements OcspServerService {
     }
 
     private RevokedCertificate isRevoked(String serialNumber){
-        return new RevokedCertificate(true,new Date());
-        //return repository.findById(serialNumber).orElse(new RevokedCertificate(false, new Date()));
+        return repository.findById(serialNumber).orElse(new RevokedCertificate(false, new Date()));
     }
 
     private KeyPair generateOCSPKeyPair() {

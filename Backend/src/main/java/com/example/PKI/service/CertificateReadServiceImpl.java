@@ -17,12 +17,10 @@ public class CertificateReadServiceImpl implements CertificateReadService {
 
     @Autowired
     private CertificateRepository repository;
-
     @Autowired
     private KeyStoreReader keyStoreReader;
     @Autowired
     private KeyStoreConfig config;
-
     @Override
     public List<CertificateData> findAll() {
         return repository.findAll();

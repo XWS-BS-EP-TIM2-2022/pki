@@ -21,7 +21,10 @@ import java.io.BufferedInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 @RequestMapping(value = "api/ocsp")
@@ -46,8 +49,16 @@ public class OcspController {
     @PostMapping("/revoke")
     public ResponseEntity<?> revoke(HttpServletRequest request) throws IOException {
         DataInputStream inputStream=new DataInputStream(request.getInputStream());
-        String serialNum=inputStream.readUTF();
-        ocspServerService.revokeCertificate(serialNum);
+        String serialNums=inputStream.readUTF();
+        List<String> list=this.parseBody(serialNums);
+        for (String num:list) {
+            ocspServerService.revokeCertificate(num);
+        }
         return ResponseEntity.ok().build();
+    }
+
+    private List<String> parseBody(String serialNums) {
+       return Arrays.stream(serialNums.split(";")).collect(Collectors.toList());
+
     }
 }
