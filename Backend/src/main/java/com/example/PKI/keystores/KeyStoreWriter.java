@@ -1,9 +1,9 @@
 package com.example.PKI.keystores;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.*;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -11,10 +11,13 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
+@Component
 public class KeyStoreWriter {
 	private KeyStore keyStore;
-	
+	@Autowired
+	private KeyStoreConfig config;
 	public KeyStoreWriter() {
 		try {
 			keyStore = KeyStore.getInstance("PKCS12", "SunJSSE");
@@ -23,7 +26,41 @@ public class KeyStoreWriter {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public void saveToRootKeyStore(String rootAlias, X509Certificate rootCertificate, PrivateKey privateKey) {
+		String keyPass = config.getRootCertPassword() + rootCertificate.getSerialNumber();
+		this.loadKeyStore(null, config.getRootCertPassword().toCharArray());
+		this.write(rootAlias, privateKey, keyPass.toCharArray(), rootCertificate);
+		this.saveKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
+	}
+
+	public void saveToKeyStore(String alias, boolean isCa, X509Certificate certificate, PrivateKey privateKey) {
+		String subjectPassword = "";
+		String keyStorePassword = "";
+		String filePath = "";
+
+		if (isCa) {
+			filePath = config.getIntermediateCertKeystore();
+			keyStorePassword = config.getIntermediateCertPassword();
+		} else {
+			filePath = config.getEndCertKeystore();
+			keyStorePassword = config.getEndCertPassword();
+		}
+
+		subjectPassword = keyStorePassword + certificate.getSerialNumber();
+
+		// creating chain
+
+		File file = new File(filePath);
+		if (!file.exists()) {
+			this.loadKeyStore(null, keyStorePassword.toCharArray());
+		} else
+			this.loadKeyStore(filePath, keyStorePassword.toCharArray());
+
+		this.write(alias, privateKey, subjectPassword.toCharArray(), certificate);
+		this.saveKeyStore(filePath, keyStorePassword.toCharArray());
+	}
+
 	public void loadKeyStore(String fileName, char[] password) {
 		try {
 			if(fileName != null) {

@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -27,7 +28,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
    @Bean
    public static PasswordEncoder passwordEncoder() {
-       return new BCryptPasswordEncoder();
+       return NoOpPasswordEncoder.getInstance();
    }
 
    @Autowired
@@ -60,6 +61,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                .authorizeRequests()
                .antMatchers("/users/**").permitAll()
                .antMatchers("/api/certificates/**").permitAll()
+               .antMatchers("/api/ocsp/**").permitAll()
 
                .anyRequest().authenticated().and()
 

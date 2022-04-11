@@ -16,8 +16,7 @@ import java.util.Collection;
 public class User implements UserDetails {
 
     @Id
-    @SequenceGenerator(name = "seqGen", sequenceName = "seq", initialValue = 1, allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seqGen")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column(unique = true)
     private String email;

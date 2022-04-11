@@ -9,8 +9,10 @@ import java.security.cert.X509Certificate;
 import com.example.PKI.data.IssuerData;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class KeyStoreReader {
 	//KeyStore je Java klasa za citanje specijalizovanih datoteka koje se koriste za cuvanje kljuceva
 	//Tri tipa entiteta koji se obicno nalaze u ovakvim datotekama su:
@@ -18,7 +20,8 @@ public class KeyStoreReader {
 	// - Privatni kljucevi
 	// - Tajni kljucevi, koji se koriste u simetricnima siframa
 	private KeyStore keyStore;
-
+	@Autowired
+	private KeyStoreConfig config;
 	public KeyStoreReader() {
 		try {
 			keyStore = KeyStore.getInstance("PKCS12", "SunJSSE");
@@ -136,7 +139,6 @@ public class KeyStoreReader {
 
 	public KeyStore getKeyStore(String fileName, char[] password) {
 		try {
-
 			if (fileName != null) {
 				keyStore.load(new FileInputStream(fileName), password);
 			}
@@ -146,6 +148,51 @@ public class KeyStoreReader {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return null;
+	}
+
+	public String getKeyStoreNameByAlias(String issuerAlias) throws KeyStoreException {
+		var rootKS = this.getKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
+		if (rootKS.containsAlias(issuerAlias))
+			return config.getRootCertKeystore();
+
+		var intermediateKS = this.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
+		if (intermediateKS.containsAlias(issuerAlias))
+			return config.getIntermediateCertKeystore();
+
+		var endKS = this.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
+		if (endKS.containsAlias(issuerAlias))
+			return config.getEndCertKeystore();
+
+		return null;
+	}
+
+	public IssuerData getIssuerData(String serialNumber) throws KeyStoreException {
+		String keyStoreName = this.getKeyStoreNameByAlias(serialNumber);
+		String keyStorePass = this.getKeyStorePasswordByAlias(serialNumber);
+		String issuerPassword = this.getKeyStorePasswordByAlias(serialNumber) + serialNumber;
+		IssuerData issuerData = this.readIssuerFromStore(keyStoreName, serialNumber, keyStorePass.toCharArray(), issuerPassword.toCharArray());
+		return issuerData;
+	}
+
+	public boolean rootAlreadyExists(String alias) {
+		var c = this.readCertificate(config.getRootCertKeystore(), config.getRootCertPassword(), alias);
+		return c != null;
+	}
+
+	public String getKeyStorePasswordByAlias(String issuerAlias) throws KeyStoreException {
+		//return config.getIntermediateCertPassword();
+		var rootKS = this.getKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
+		if (rootKS.containsAlias(issuerAlias))
+			return config.getRootCertPassword();
+
+		var intermediateKS = this.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
+		if (intermediateKS.containsAlias(issuerAlias))
+			return config.getIntermediateCertPassword();
+
+		var endKS = this.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
+		if (endKS.containsAlias(issuerAlias))
+			return config.getEndCertPassword();
 
 		return null;
 	}

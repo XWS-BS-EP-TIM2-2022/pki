@@ -9,6 +9,7 @@ import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.keystores.KeyStoreWriter;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.model.User;
+import com.example.PKI.model.enumerations.CertificateLevel;
 import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.repository.UserRepository;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -31,24 +32,22 @@ import java.util.UUID;
 @Service
 public class CertificateIssuingService {
     private CertificateGenerator certificateGenerator = new CertificateGenerator();
-    private KeyStoreWriter keyStoreWriter = new KeyStoreWriter();
-    private KeyStoreReader keystoreReader = new KeyStoreReader();
-    private KeyStoreConfig config;
-
+    @Autowired
+    private KeyStoreWriter keyStoreWriter;
+    @Autowired
+    private KeyStoreReader keystoreReader;
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private CertificateRepository certificateRepository;
 
-    public CertificateIssuingService(KeyStoreConfig config) {
-        this.config = config;
-    }
+    public CertificateIssuingService() {}
 
     public CertificateData issueRootCertificate() {
         var admin = getAdmin();
         BigInteger serialNumber = generateSerialNumber();
 
-        if (rootAlreadyExists(String.valueOf(serialNumber)))
+        if (keystoreReader.rootAlreadyExists(String.valueOf(serialNumber)))
             return null;
         KeyPair keyPair = generateKeys();
         IssuerData issuer = new IssuerData(keyPair.getPrivate(), getDataForSelfSigned(admin).build());
@@ -67,14 +66,12 @@ public class CertificateIssuingService {
                 validTo);
         X509Certificate rootCertificate = certificateGenerator.generateCertificate(subject, issuer, initRootKeyUsages(), true);
         this.verifyCertificate(keyPair.getPublic(), rootCertificate);
-        this.saveToRootKeyStore(String.valueOf(serialNumber), rootCertificate, keyPair.getPrivate());
-        return certificateRepository.save(new CertificateData(rootCertificate.getSerialNumber().toString(),
-                rootCertificate.getSigAlgName(), rootCertificate.getSerialNumber().toString(), rootCertificate.getNotBefore(),
-                rootCertificate.getNotAfter(), rootCertificate.getSerialNumber().toString(), false, admin));
+        keyStoreWriter.saveToRootKeyStore(String.valueOf(serialNumber), rootCertificate, keyPair.getPrivate());
+        return saveToDatabase(new CertificateData(rootCertificate.getSerialNumber().toString(),admin.getEmail(),null, admin.getEmail(), CertificateLevel.Root,admin));
     }
 
     public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws KeyStoreException {
-        IssuerData issuerData = getIssuerData(newCertificateDTO.getIssuerSerialNumber());
+        IssuerData issuerData = keystoreReader.getIssuerData(newCertificateDTO.getIssuerSerialNumber());
         KeyPair keyPair = this.generateKeys();
         BigInteger serialNumber = generateSerialNumber();
         User subject = userRepository.findById(newCertificateDTO.getSubjectId()).get();
@@ -83,12 +80,19 @@ public class CertificateIssuingService {
                 serialNumber,
                 newCertificateDTO.getValidFrom(),
                 newCertificateDTO.getValidTo());
-
+        String issuerEmail = String.valueOf(issuerData.getX500name().getRDNs(BCStyle.E)[0].getFirst().getValue());
         X509Certificate cert = certificateGenerator.generateCertificate(subjectData, issuerData, newCertificateDTO.getKeyUsages(),
                 newCertificateDTO.getIsCA());
         this.verifySignedCertificateSigne(newCertificateDTO, cert);
-        this.saveToKeyStore(cert.getSerialNumber().toString(), newCertificateDTO.getIsCA(), cert, keyPair.getPrivate());
-        return certificateRepository.save(new CertificateData(cert.getSerialNumber().toString(), false));
+        keyStoreWriter.saveToKeyStore(cert.getSerialNumber().toString(), newCertificateDTO.getIsCA(), cert, keyPair.getPrivate());
+        CertificateData certificateData=new CertificateData(cert.getSerialNumber().toString(),issuerEmail,getIssuerCertificate(newCertificateDTO.getIssuerSerialNumber()).getSerialNumber().toString(),
+                subject.getEmail(),
+                newCertificateDTO.getIsCA() ? CertificateLevel.Intermediate : CertificateLevel.End,subject);
+        return saveToDatabase(certificateData);
+    }
+
+    private CertificateData saveToDatabase(CertificateData certificateData) {
+        return certificateRepository.save(certificateData);
     }
 
     private ArrayList<Integer> initRootKeyUsages() {
@@ -105,11 +109,14 @@ public class CertificateIssuingService {
     }
 
     private void verifySignedCertificateSigne(NewCertificateDTO newCertificateDTO, X509Certificate cert) throws KeyStoreException {
-        String issuerAlias = newCertificateDTO.getIssuerSerialNumber();
-        String keyStoreName = this.getKeyStoreNameByAlias(issuerAlias);
-        String keyStorePass = this.getKeyStorePasswordByAlias(issuerAlias);
-        X509Certificate issuerCert = (X509Certificate) keystoreReader.readCertificate(keyStoreName, keyStorePass, issuerAlias);
+        X509Certificate issuerCert = getIssuerCertificate(newCertificateDTO.getIssuerSerialNumber());
         this.verifyCertificate(issuerCert.getPublicKey(), cert);
+    }
+
+    private X509Certificate getIssuerCertificate(String serialNumber) throws KeyStoreException {
+        String keyStoreName = keystoreReader.getKeyStoreNameByAlias(serialNumber);
+        String keyStorePass = keystoreReader.getKeyStorePasswordByAlias(serialNumber);
+        return (X509Certificate) keystoreReader.readCertificate(keyStoreName, keyStorePass, serialNumber);
     }
 
     private User getAdmin() {
@@ -120,56 +127,9 @@ public class CertificateIssuingService {
         try {
             certificate.verify(publicKey);
             System.out.println("Ispravan potpis");
-        } catch (CertificateException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        } catch (SignatureException e) {
+        } catch (CertificateException | NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException | SignatureException e) {
             e.printStackTrace();
         }
-    }
-
-    private void saveToRootKeyStore(String rootAlias, X509Certificate rootCertificate, PrivateKey privateKey) {
-        String keyPass = config.getRootCertPassword() + rootCertificate.getSerialNumber();
-        keyStoreWriter.loadKeyStore(null, config.getRootCertPassword().toCharArray());
-        keyStoreWriter.write(rootAlias, privateKey, keyPass.toCharArray(), rootCertificate);
-        keyStoreWriter.saveKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
-    }
-
-    private void saveToKeyStore(String alias, boolean isCa, X509Certificate certificate, PrivateKey privateKey) {
-        String subjectPassword = "";
-        String keyStorePassword = "";
-        String filePath = "";
-
-        if (isCa) {
-            filePath = config.getIntermediateCertKeystore();
-            keyStorePassword = config.getIntermediateCertPassword();
-        } else {
-            filePath = config.getEndCertKeystore();
-            keyStorePassword = config.getEndCertPassword();
-        }
-
-        subjectPassword = keyStorePassword + certificate.getSerialNumber();
-
-        // creating chain
-
-        File file = new File(filePath);
-        if (!file.exists()) {
-            keyStoreWriter.loadKeyStore(null, keyStorePassword.toCharArray());
-        } else
-            keyStoreWriter.loadKeyStore(filePath, keyStorePassword.toCharArray());
-
-        keyStoreWriter.write(alias, privateKey, subjectPassword.toCharArray(), certificate);
-        keyStoreWriter.saveKeyStore(filePath, keyStorePassword.toCharArray());
-    }
-
-    private boolean rootAlreadyExists(String alias) {
-        var c = keystoreReader.readCertificate(config.getRootCertKeystore(), config.getRootCertPassword(), alias);
-        return c != null;
     }
 
     private X500NameBuilder getDataForSelfSigned(User admin) {
@@ -188,52 +148,9 @@ public class CertificateIssuingService {
             SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
             generator.initialize(2048, random);
             return generator.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             e.printStackTrace();
         }
-        return null;
-    }
-
-    private IssuerData getIssuerData(String serialNumber) throws KeyStoreException {
-        String keyStoreName = this.getKeyStoreNameByAlias(serialNumber);
-        String keyStorePass = this.getKeyStorePasswordByAlias(serialNumber);
-        String issuerPassword = getKeyStorePasswordByAlias(serialNumber) + serialNumber;
-        IssuerData issuerData = keystoreReader.readIssuerFromStore(keyStoreName, serialNumber, keyStorePass.toCharArray(), issuerPassword.toCharArray());
-        return issuerData;
-    }
-
-    private String getKeyStoreNameByAlias(String issuerAlias) throws KeyStoreException {
-        var rootKS = keystoreReader.getKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
-        if (rootKS.containsAlias(issuerAlias))
-            return config.getRootCertKeystore();
-
-        var intermediateKS = keystoreReader.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
-        if (intermediateKS.containsAlias(issuerAlias))
-            return config.getIntermediateCertKeystore();
-
-        var endKS = keystoreReader.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
-        if (endKS.containsAlias(issuerAlias))
-            return config.getEndCertKeystore();
-
-        return null;
-    }
-
-    private String getKeyStorePasswordByAlias(String issuerAlias) throws KeyStoreException {
-        //return config.getIntermediateCertPassword();
-        var rootKS = keystoreReader.getKeyStore(config.getRootCertKeystore(), config.getRootCertPassword().toCharArray());
-        if (rootKS.containsAlias(issuerAlias))
-            return config.getRootCertPassword();
-
-        var intermediateKS = keystoreReader.getKeyStore(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword().toCharArray());
-        if (intermediateKS.containsAlias(issuerAlias))
-            return config.getIntermediateCertPassword();
-
-        var endKS = keystoreReader.getKeyStore(config.getEndCertKeystore(), config.getEndCertPassword().toCharArray());
-        if (endKS.containsAlias(issuerAlias))
-            return config.getEndCertPassword();
-
         return null;
     }
 

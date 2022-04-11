@@ -2,6 +2,7 @@ package com.example.PKI.certificates;
 
 import com.example.PKI.data.IssuerData;
 import com.example.PKI.data.SubjectData;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -13,11 +14,13 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.List;
 
 
@@ -49,7 +52,9 @@ public class CertificateGenerator {
 			certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(isCA));
 			certGen.addExtension(Extension.keyUsage, true, new KeyUsage(setKeyUsage(keyUsageValues)));
 			certGen.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(new GeneralName(GeneralName.dNSName, "localhost")));
-
+			AuthorityInformationAccess authorityInformationAccess= new AuthorityInformationAccess(X509ObjectIdentifiers.ocspAccessMethod,
+					new GeneralName(GeneralName.uniformResourceIdentifier, "http://localhost:8080"));
+			certGen.addExtension(Extension.authorityInfoAccess,true,authorityInformationAccess);
 			X509CertificateHolder certHolder = certGen.build(contentSigner);
 			JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
 			certConverter = certConverter.setProvider("BC");
@@ -60,6 +65,8 @@ public class CertificateGenerator {
 		} catch (CertificateException e) {
 			e.printStackTrace();
 		} catch (CertIOException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return null;

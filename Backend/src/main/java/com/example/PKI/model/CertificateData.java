@@ -1,58 +1,44 @@
 package com.example.PKI.model;
 
+import com.example.PKI.model.enumerations.CertificateLevel;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
-import java.util.Date;
 
 @Entity
 @Table(name = "certificates")
 public class CertificateData {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(nullable = false, unique = true)
     private String serialNumber;
-    @Column(nullable = true)
-    public String signatureAlgorithm;
-    @Column(nullable = true)
-    public String issuer;
-    @Column(nullable = true)
-    public Date validFrom;
-    @Column(nullable = true)
-    public Date validTo;
-    @Column(nullable = true)
-    public String subject;
-    @Column(nullable = true)
-    private boolean isWithdrawn;
-
+    public String issuerEmail;
+    public String issuerCertificateSerialNum;
+    public String subjectEmail;
+    private CertificateLevel level;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
-    public User userId;
+    public User user;
 
     public CertificateData() {}
 
-    public CertificateData(String serialNumber, String signatureAlgorithm, String issuer,
-                           Date validFrom, Date validTo, String subject, boolean isWithdrawn, User userId) {
+    public CertificateData(String serialNumber, String issuerEmail, String issuerCertificateSerialNum, String subjectEmail, CertificateLevel level, User user) {
         this.serialNumber = serialNumber;
-        this.signatureAlgorithm = signatureAlgorithm;
-        this.issuer = issuer;
-        this.validFrom = validFrom;
-        this.validTo = validTo;
-        this.subject = subject;
-        this.isWithdrawn = isWithdrawn;
-        this.userId = userId;
+        this.issuerEmail = issuerEmail;
+        this.issuerCertificateSerialNum = issuerCertificateSerialNum;
+        this.subjectEmail = subjectEmail;
+        this.level = level;
+        this.user = user;
     }
 
-    public CertificateData(String serialNumber, boolean isWithdrawn) {
+    public String getIssuerCertificateSerialNum() {
+        return issuerCertificateSerialNum;
+    }
+
+    public void setIssuerCertificateSerialNum(String issuerCertificateSerialNum) {
+        this.issuerCertificateSerialNum = issuerCertificateSerialNum;
+    }
+
+    public CertificateData(String serialNumber) {
         this.serialNumber = serialNumber;
-        this.isWithdrawn = isWithdrawn;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getSerialNumber() {
@@ -63,59 +49,46 @@ public class CertificateData {
         this.serialNumber = serialNumber;
     }
 
-    public String getSignatureAlgorithm() {
-        return signatureAlgorithm;
+    public String getIssuerEmail() {
+        return issuerEmail;
     }
 
-    public void setSignatureAlgorithm(String signatureAlgorithm) {
-        this.signatureAlgorithm = signatureAlgorithm;
+    public void setIssuerEmail(String issuerEmail) {
+        this.issuerEmail = issuerEmail;
     }
 
-    public String getIssuer() {
-        return issuer;
+    public String getSubjectEmail() {
+        return subjectEmail;
     }
 
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
+    public void setSubjectEmail(String subjectEmail) {
+        this.subjectEmail = subjectEmail;
     }
 
-    public Date getValidFrom() {
-        return validFrom;
+    public User getUser() {
+        return user;
     }
 
-    public void setValidFrom(Date validFrom) {
-        this.validFrom = validFrom;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public Date getValidTo() {
-        return validTo;
+    public CertificateLevel getLevel() {
+        return level;
     }
 
-    public void setValidTo(Date validTo) {
-        this.validTo = validTo;
+    public CertificateData setLevel(CertificateLevel level) {
+        this.level = level;
+        return this;
     }
 
-    public String getSubject() {
-        return subject;
+    @JsonIgnore
+    public boolean isRoot(){
+        return level.equals(CertificateLevel.Root);
     }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public boolean isWithdrawn() {
-        return isWithdrawn;
-    }
-
-    public void setWithdrawn(boolean withdrawn) {
-        isWithdrawn = withdrawn;
-    }
-
-    public User getUserId() {
-        return userId;
-    }
-
-    public void setUserId(User userId) {
-        this.userId = userId;
+    @JsonIgnore
+    public boolean isEndUser(){
+        return level.equals(CertificateLevel.End);
     }
 }
