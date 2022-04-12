@@ -3,13 +3,17 @@ package com.example.PKI.service;
 import com.example.PKI.keystores.KeyStoreConfig;
 import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.model.CertificateData;
+import com.example.PKI.model.User;
 import com.example.PKI.model.enumerations.Role;
 import com.example.PKI.repository.CertificateRepository;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -36,5 +40,9 @@ public class CertificateReadServiceImpl implements CertificateReadService {
         List<CertificateData> subject = repository.findCertificateBySubject(intermEmail);
         issued.addAll(subject);
         return issued;
+    }
+
+    public Collection<CertificateData> findCertificatesByUser(User user) {
+        return repository.findAllCertificatesByIssuer(user.getEmail());
     }
 }

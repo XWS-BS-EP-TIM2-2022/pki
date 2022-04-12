@@ -21,8 +21,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -99,39 +101,16 @@ public class UserController {
         return new ResponseEntity<>(new UserDTO(appUser), HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/{id}")
-    public ResponseEntity<Void> remove(@PathVariable("id") long id) {
-        User appUser = appUserService.findOne(id);
-        if(appUser == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        appUserService.remove(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/whoami")
+    public User getCurrentUser() {
+        return appUserService.getLoggedInUser();
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/update")
-    public ResponseEntity<UserDTO> update(@RequestBody UserDTO appUserDTO) {
-        User appUser = appUserService.findOne(appUserDTO.getId());
-
-        if(appUser == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        appUser.setName(appUserDTO.getName());
-        appUser.setSurname(appUserDTO.getSurname());
-        appUser.setAddress(appUserDTO.getAddress());
-        appUser.setRole(appUserDTO.getRole());
-        appUser.setCommonName(appUserDTO.getCommonName());
-        appUser.setOrganizationName((appUserDTO.getOrganizationName()));
-
-        appUser = appUserService.save(appUser);
-        return new ResponseEntity<>(new UserDTO(appUser), HttpStatus.OK);
-    }
-
-    public static User getLoggedinUser(){
-
-        var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return (User) principal;
+    @GetMapping(value="/find-all-clients", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Collection<UserDTO>> findClients() {
+        var users = appUserService.findAll();
+        var clients = users.stream().filter(user -> user.getRole() == Role.Intermediate || user.getRole() == Role.EndUser)
+                .collect(Collectors.toCollection(ArrayList::new));
+        return new ResponseEntity(clients, HttpStatus.OK);
     }
 }
