@@ -154,11 +154,11 @@ public class CertificateIssuingService {
 
     private KeyPair generateKeys() {
         try {
-            var generator = KeyPairGenerator.getInstance("RSA");
-            SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
+            SecureRandom random = SecureRandom.getInstanceStrong();
             generator.initialize(2048, random);
             return generator.generateKeyPair();
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+        } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         return null;

@@ -37,7 +37,7 @@ public class CertificateGenerator {
 											   boolean isCA) {
 		try {
 			Security.addProvider(new BouncyCastleProvider());
-			JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
+			JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WITHDSA");
 			builder = builder.setProvider("BC");
 
 			ContentSigner contentSigner = builder.build(issuerData.getPrivateKey());
