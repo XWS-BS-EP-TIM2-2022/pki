@@ -5,9 +5,11 @@ import com.example.PKI.model.CertificateData;
 import com.example.PKI.model.User;
 import com.example.PKI.service.CertificateIssuingService;
 import com.example.PKI.service.CertificateReadService;
+import com.example.PKI.service.UserService;
 import com.example.PKI.service.ocsp.OcspClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,18 +22,20 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyStoreException;
+import java.security.Principal;
+import java.util.Collection;
 
 @RestController
 @RequestMapping(value = "api/certificates")
 public class CertificateController {
     @Autowired
     CertificateIssuingService certificateIssuingService;
-
     @Autowired
     private CertificateReadService certificateReadService;
-
     @Autowired
     private OcspClientService ocspClientService;
+    @Autowired
+    private UserService userService;
 
     @PostMapping(value = "/createRoot")
     public ResponseEntity<String> createRootCert() {
@@ -49,7 +53,7 @@ public class CertificateController {
 
     @GetMapping("/")
     public ResponseEntity<?> findAll() throws IOException {
-        User user=UserController.getLoggedinUser();
+        User user = userService.getLoggedInUser();
         return ResponseEntity.ok(certificateReadService.findAllByUserRole(user.getRole(),user.getEmail()));
     }
 
@@ -66,5 +70,11 @@ public class CertificateController {
             return new ResponseEntity<>("Certificate failed to create!", HttpStatus.BAD_REQUEST);
 
         return new ResponseEntity<>("New certificate successfully created!", HttpStatus.OK);
+    }
+
+    @GetMapping(value="/get-certificates-for-user", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Collection<CertificateData>> getAllCertsForUser(Principal user) {
+        var currentUser = userService.findByEmail(user.getName());
+        return new ResponseEntity<>(certificateReadService.findCertificatesByUser(currentUser), HttpStatus.OK);
     }
 }

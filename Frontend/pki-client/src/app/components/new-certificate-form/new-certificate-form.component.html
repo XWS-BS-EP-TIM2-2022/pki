@@ -1,0 +1,69 @@
+<div>
+  <section class="background d-flex flex-column justify-content-center">
+    <div class="container"></div>
+  </section>
+</div>
+
+<div class="center row mt-4">
+  <div class="content mt-3">
+    <h1 class="my-3">Create New Certificate</h1>
+    <div class="row inputField">
+      <mat-form-field>
+        <input matInput type="text" disabled [(ngModel)]="currentUser.commonName">
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Subject</mat-label>
+        <mat-select [(ngModel)]="selectedSubject">
+          <mat-option *ngFor="let client of clients" [value]="client.id">
+            {{client.commonName}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Issuer</mat-label>
+        <mat-select [(ngModel)]="selectedIssuer">
+          <mat-option *ngFor="let issuer of issuers" [value]="issuer.serialNumber">
+            {{issuer.serialNumber}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Certificate type</mat-label>
+        <mat-select>
+          <mat-option>
+            Intermediary certificate
+          </mat-option>
+          <mat-option>
+            End certificate
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px;">
+      <mat-form-field>
+        <mat-label>Enter valid period</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate name="start" />
+          />
+          <input matEndDate name="end" /> />
+        </mat-date-range-input>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+    </div>
+    <!-- <div class="row justify-content-center">
+        <mat-error style="text-align: center">
+          Password and username are required!
+        </mat-error>
+      </div> -->
+    <button class="btn submit-btn mt-4">
+      Submit
+    </button>
+  </div>
+</div>

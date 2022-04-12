@@ -8,5 +8,12 @@ import { Router } from '@angular/router';
 })
 export class AppComponent {
   title = 'pki-client';
-  constructor(public router: Router) {}
+  constructor(public router: Router) { }
+
+  checkUrl() {
+    if (window.location.href.indexOf("/login") > -1 || window.location.href.indexOf("/register") > -1)
+      return false;
+
+    return true;
+  }
 }

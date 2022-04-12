@@ -3,6 +3,7 @@ package com.example.PKI.service;
 import com.example.PKI.model.User;
 import com.example.PKI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,10 +27,7 @@ public class UserServiceImpl implements UserService {
     public void remove(long id) { appUserRepository.deleteById(id); }
     @Override
     public User findByEmail(String email) { return appUserRepository.findByEmail(email); }
-//	@Override
-//	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//		return findByEmail(username);
-//	}
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = appUserRepository.findByEmail(email);
@@ -43,5 +41,11 @@ public class UserServiceImpl implements UserService {
     @Autowired
     public UserServiceImpl(UserRepository appUserRepository) {
         this.appUserRepository = appUserRepository;
+    }
+
+    @Override
+    public User getLoggedInUser(){
+        var principal = SecurityContextHolder.getContext().getAuthentication().getName();
+        return findByEmail(principal);
     }
 }

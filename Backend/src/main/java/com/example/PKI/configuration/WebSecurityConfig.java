@@ -55,19 +55,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
        http
 
                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-
                .exceptionHandling().authenticationEntryPoint(restAuthenticationEntryPoint).and()
-
                .authorizeRequests()
                .antMatchers("/users/**").permitAll()
                .antMatchers("/api/certificates/**").permitAll()
                .antMatchers("/api/ocsp/**").permitAll()
 
                .anyRequest().authenticated().and()
-
                .cors().and()
-
-   .addFilterBefore(new TokenAuthenticationFilter(tokenUtils, customUserDetailsService), BasicAuthenticationFilter.class);
+               .addFilterBefore(new TokenAuthenticationFilter(tokenUtils, customUserDetailsService), BasicAuthenticationFilter.class);
        http.csrf().disable();
    }
 
@@ -75,7 +71,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
    public void configure(WebSecurity web) throws Exception {
 
        web.ignoring().antMatchers(HttpMethod.POST, "/users/login");
-
        web.ignoring().antMatchers(HttpMethod.GET, "/", "/webjars/**", "/*.html", "favicon.ico", "/**/*.html",
                "/**/*.css", "/**/*.js");
    }
