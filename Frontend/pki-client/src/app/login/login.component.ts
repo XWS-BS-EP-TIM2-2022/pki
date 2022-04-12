@@ -13,8 +13,8 @@ export class LoginComponent implements OnInit {
   public readonly myFormGroup: FormGroup;
 
   constructor(private loginService: LoginService,
-              private readonly formBuilder: FormBuilder,
-              private router: Router) {
+    private readonly formBuilder: FormBuilder,
+    private router: Router) {
     this.myFormGroup = this.formBuilder.group({
       email: ['', Validators.compose([Validators.required, Validators.email])],
       password: ['', Validators.required],
@@ -26,8 +26,8 @@ export class LoginComponent implements OnInit {
 
   public onClickSubmit(): void {
     if (this.myFormGroup.invalid) {
-        alert('Invalid input');
-        return;
+      alert('Invalid input');
+      return;
     }
     this.loginService.loginUser(this.myFormGroup.getRawValue()).subscribe({
       next: (data) => {
@@ -35,8 +35,9 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('userType', data.appUserType)
         localStorage.setItem('jwt', data.userTokenState.accessToken)
         this.loginService.isLoggedIn = true;
+        this.router.navigate(['/certificates'])
       },
-      error: (err) => {alert("Invalid username/password!")}
+      error: (err) => { alert("Invalid username/password!") }
     });
   }
 

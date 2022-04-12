@@ -8,25 +8,25 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto me-4">
-        <li *ngIf="!loginService.isLoggedIn" class="nav-item">
+        <li *ngIf="!isLoggedIn()" class="nav-item">
           <a class="nav-link" routerLink="login">Login</a>
         </li>
-        <li *ngIf="!loginService.isLoggedIn" class="nav-item">
+        <li *ngIf="!isLoggedIn()" class="nav-item">
           <a class="nav-link" routerLink="register">Register</a>
         </li>
-        <li class="nav-item" *ngIf="loginService.isLoggedIn">
+        <li class="nav-item" *ngIf="isLoggedIn()">
           <a class="nav-link" aria-current="page" href="#">All Certificates</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item" *ngIf="currentUser !== undefined && (isAdmin() || isIntermediate())">
           <a class="nav-link" href="/new-certificate">Issue
             new
             certificate</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Generate root
+        <li class="nav-item" *ngIf="isLoggedIn() && isAdmin()">
+          <a class="nav-link" (click)="createRoot()">Generate root
             certificate</a>
         </li>
-        <li *ngIf="loginService.isLoggedIn" class="nav-item">
+        <li *ngIf="isLoggedIn()" class="nav-item">
           <a class="nav-link" routerLink="" (click)="logout()">Logout</a>
         </li>
       </ul>

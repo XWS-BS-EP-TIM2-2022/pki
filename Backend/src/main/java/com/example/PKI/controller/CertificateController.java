@@ -11,16 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.KeyStoreException;
 import java.security.Principal;
 import java.util.Collection;
@@ -72,7 +65,7 @@ public class CertificateController {
     }
 
     @GetMapping(value="/get-certificates-for-user", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Collection<CertificateData>> getAllCertsForUser(Principal user) {
+    public ResponseEntity<Collection<CertificateData>> getAllCertsForUser(Principal user) throws KeyStoreException {
         var currentUser = userService.findByEmail(user.getName());
         return new ResponseEntity<>(certificateReadService.findCertificatesByUser(currentUser), HttpStatus.OK);
     }

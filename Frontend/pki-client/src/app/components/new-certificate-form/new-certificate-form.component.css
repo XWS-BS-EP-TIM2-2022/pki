@@ -1,8 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito&display=swap");
+
 .background {
-  background-color: gainsboro;
-  height: 100vh;
-  min-width: 1480px;
-  position: relative;
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/opacity/see-through */
+  color: white;
 }
 
 .center {
@@ -13,10 +14,13 @@
   background: #faf9f9;
   border-radius: 10px;
   box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.05);
+  font-size: 18px;
+  width: 450px;
 }
 
 h1 {
   padding: 0 50px;
+  font-family: "Nunito", sans-serif;
 }
 
 .content {

@@ -73,8 +73,11 @@ public class CertificateIssuingService {
                 validTo);
         X509Certificate rootCertificate = certificateGenerator.generateCertificate(subject, issuer, initRootKeyUsages(), true);
         this.verifyCertificate(keyPair.getPublic(), rootCertificate);
+
+        String certificateName = admin.getCommonName() + "'s root certificate";
+
         keyStoreWriter.saveToRootKeyStore(String.valueOf(serialNumber), rootCertificate, keyPair.getPrivate());
-        return saveToDatabase(new CertificateData(rootCertificate.getSerialNumber().toString(),admin.getEmail(),null, admin.getEmail(), CertificateLevel.Root,admin));
+        return saveToDatabase(new CertificateData(rootCertificate.getSerialNumber().toString(),admin.getEmail(),null, admin.getEmail(), CertificateLevel.Root,admin, certificateName));
     }
 
     public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws Exception {
@@ -94,11 +97,19 @@ public class CertificateIssuingService {
         X509Certificate cert = certificateGenerator.generateCertificate(subjectData, issuerData, newCertificateDTO.getKeyUsages(),
                 newCertificateDTO.getIsCA());
         this.verifySignedCertificateSigne(newCertificateDTO, cert);
+
+        User issuer = userRepository.getById(newCertificateDTO.getIssuerId());
+        String certificateName = issuer.getCommonName() + "'s certificate " + (countUsersCertificates(issuer) + 1);
+
         keyStoreWriter.saveToKeyStore(cert.getSerialNumber().toString(), newCertificateDTO.getIsCA(), cert, keyPair.getPrivate());
         CertificateData certificateData=new CertificateData(cert.getSerialNumber().toString(),issuerEmail,getIssuerCertificate(newCertificateDTO.getIssuerSerialNumber()).getSerialNumber().toString(),
                 subject.getEmail(),
-                newCertificateDTO.getIsCA() ? CertificateLevel.Intermediate : CertificateLevel.End,subject);
+                newCertificateDTO.getIsCA() ? CertificateLevel.Intermediate : CertificateLevel.End,subject, certificateName);
         return saveToDatabase(certificateData);
+    }
+
+    private int countUsersCertificates(User user) {
+        return certificateRepository.findAllCertificatesByIssuer(user.getEmail()).size();
     }
 
     private CertificateData saveToDatabase(CertificateData certificateData) {

@@ -14,19 +14,31 @@ public class CertificateData {
     public String issuerCertificateSerialNum;
     public String subjectEmail;
     private CertificateLevel level;
+    private String certificateName;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     public User user;
 
     public CertificateData() {}
 
-    public CertificateData(String serialNumber, String issuerEmail, String issuerCertificateSerialNum, String subjectEmail, CertificateLevel level, User user) {
+    public CertificateData(String serialNumber, String issuerEmail, String issuerCertificateSerialNum,
+                           String subjectEmail, CertificateLevel level, User user, String certificateName) {
         this.serialNumber = serialNumber;
         this.issuerEmail = issuerEmail;
         this.issuerCertificateSerialNum = issuerCertificateSerialNum;
         this.subjectEmail = subjectEmail;
         this.level = level;
         this.user = user;
+        this.certificateName = certificateName;
+    }
+
+    public String getCertificateName() {
+        return certificateName;
+    }
+
+    public void setCertificateName(String certificateName) {
+        this.certificateName = certificateName;
     }
 
     public String getIssuerCertificateSerialNum() {

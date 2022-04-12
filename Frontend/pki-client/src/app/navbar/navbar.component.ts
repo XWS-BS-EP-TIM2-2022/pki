@@ -14,6 +14,7 @@ import { UserService } from '../services/user.service';
 export class NavbarComponent implements OnInit {
 
   currentUser!: User;
+  currentRole = "";
 
   constructor(public readonly loginService: LoginService, public certificateService: CertificateService, public snackBar: MatSnackBar,
     private route: Router, public userService: UserService) { }
@@ -22,15 +23,25 @@ export class NavbarComponent implements OnInit {
     this.getCurrentUser();
   }
 
+  isLoggedIn() {
+    return (localStorage.getItem('jwt') !== null && localStorage.getItem('jwt') !== undefined)
+  }
+
   logout(): void {
     localStorage.removeItem('userId');
     localStorage.removeItem('userType');
     localStorage.removeItem('jwt');
     this.loginService.isLoggedIn = false;
+    this.route.navigate(['/']);
+    window.location.reload();
   }
 
   public getCurrentUser() {
-    this.userService.getCurrentUser().subscribe(data => this.currentUser = data);
+    this.userService.getCurrentUser().subscribe(data => {
+      this.currentUser = data;
+      if (this.currentUser !== null)
+        this.currentRole = this.currentUser.role;
+    });
   }
 
   public createRoot() {
@@ -42,5 +53,13 @@ export class NavbarComponent implements OnInit {
       (error) => {
         this.snackBar.open("Root certificate already exists!", "Dismiss", { duration: 3000 });
       })
+  }
+
+  isAdmin() {
+    return this.currentRole === 'Admin';
+  }
+
+  isIntermediate() {
+    return this.currentRole === 'Intermediate';
   }
 }
