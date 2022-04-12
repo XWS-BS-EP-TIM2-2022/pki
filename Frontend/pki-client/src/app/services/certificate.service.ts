@@ -22,4 +22,8 @@ export class CertificateService {
   public createNewCertificate(dto: CertificateDto) {
     return this.http.post(environment.api + 'api/certificates/createNewCertificate', dto, { responseType: 'text' })
   }
+
+  revokeCertificate(serialNumber: String) {
+    return this.http.post(environment.api + 'api/certificates/revoke', serialNumber, { observe: 'response' });
+  }
 }

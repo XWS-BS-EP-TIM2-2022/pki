@@ -1,9 +1,19 @@
 <!-- background-color: #6bb3e2; -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light" style="font-weight: 700;">
+<nav
+  class="navbar navbar-expand-lg navbar-light bg-light"
+  style="font-weight: 700"
+>
   <div class="container-fluid">
     <a class="navbar-brand ms-4" routerLink="">Home</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
@@ -15,16 +25,20 @@
           <a class="nav-link" routerLink="register">Register</a>
         </li>
         <li class="nav-item" *ngIf="isLoggedIn()">
-          <a class="nav-link" aria-current="page" href="#">All Certificates</a>
+          <a class="nav-link" aria-current="page" href="/certificates"
+            >All Certificates</a
+          >
         </li>
-        <li class="nav-item" *ngIf="currentUser !== undefined && (isAdmin() || isIntermediate())">
-          <a class="nav-link" href="/new-certificate">Issue
-            new
-            certificate</a>
+        <li
+          class="nav-item"
+          *ngIf="isLoggedIn() && (isAdmin() || isIntermediate())"
+        >
+          <a class="nav-link" href="/new-certificate">Issue new certificate</a>
         </li>
         <li class="nav-item" *ngIf="isLoggedIn() && isAdmin()">
-          <a class="nav-link" (click)="createRoot()">Generate root
-            certificate</a>
+          <a class="nav-link" (click)="createRoot()"
+            >Generate root certificate</a
+          >
         </li>
         <li *ngIf="isLoggedIn()" class="nav-item">
           <a class="nav-link" routerLink="" (click)="logout()">Logout</a>
