@@ -64,6 +64,12 @@ public class CertificateReadServiceImpl implements CertificateReadService {
         return notRevoked;
     }
 
+    @Override
+    public X509Certificate findBySerialNumber(String serialNumber) {
+        var cert = repository.getBySerialNumber(serialNumber);
+        return readCertificate(cert);
+    }
+
     private boolean isCertificateRevoked(CertificateData data) throws KeyStoreException {
         X509Certificate cert = readCertificate(data);
         try {

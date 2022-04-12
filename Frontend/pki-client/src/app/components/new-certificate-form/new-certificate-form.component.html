@@ -62,7 +62,7 @@
         {{errorMessage}}
       </mat-error>
     </div>
-    <button class="btn submit-btn mt-4" (click)="createNewCertificate()">
+    <button class="btn submit-btn mt-4" (click)="createNewCertificate()" [disabled]="isButtonDisabled()">
       Submit
     </button>
   </div>

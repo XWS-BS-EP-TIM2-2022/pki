@@ -82,4 +82,14 @@ export class NewCertificateFormComponent implements OnInit {
         //this.snackBar.open(error.error, "Dismiss", { duration: 3000 });
       });
   }
+
+  isButtonDisabled() {
+    if (this.selectedIssuer === undefined || this.selectedIssuer === null ||
+      this.selectedSubject === undefined || this.selectedSubject === null ||
+      this.selectedType === undefined || this.startDate === undefined || this.startDate === null ||
+      this.endDate === null || this.endDate === undefined)
+      return true;
+
+    return false;
+  }
 }

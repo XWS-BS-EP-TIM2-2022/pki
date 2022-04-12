@@ -30,4 +30,8 @@ export class CertificateService {
   revokeCertificate(serialNumber: String) {
     return this.http.post(environment.api + 'api/certificates/revoke', serialNumber, { observe: 'response' });
   }
+
+  public download(serialNumber: string) {
+    return this.http.get(environment.api + 'api/certificates/download', { params: { serialNumber: serialNumber }, responseType: 'blob' });
+  }
 }

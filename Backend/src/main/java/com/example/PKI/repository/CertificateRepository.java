@@ -16,4 +16,7 @@ public interface CertificateRepository extends JpaRepository<CertificateData, St
 
     @Query("select cert from CertificateData cert where cert.subjectEmail=?1")
     public List<CertificateData> findCertificateBySubject(String subjectEmail);
+
+    @Query("select cert from CertificateData cert where cert.serialNumber=?1")
+    public CertificateData getBySerialNumber(String serialNumber);
 }

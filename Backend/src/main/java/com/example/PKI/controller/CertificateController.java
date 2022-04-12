@@ -9,14 +9,20 @@ import com.example.PKI.service.CertificateReadService;
 import com.example.PKI.service.UserService;
 import com.example.PKI.service.ocsp.OcspClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.Principal;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 
 @RestController
@@ -75,5 +81,23 @@ public class CertificateController {
     public ResponseEntity<Collection<CertificateDTO>> getAllCertificatesForUser(Principal user) throws KeyStoreException {
         var currentUser = userService.findByEmail(user.getName());
         return new ResponseEntity<>(certificateReadService.findAllCertificatesByUser(currentUser), HttpStatus.OK);
+    }
+    
+    @GetMapping(value="download")
+    public ResponseEntity<?> downloadCertificate(String serialNumber) {
+        var certificate = certificateReadService.findBySerialNumber(serialNumber);
+        var headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename ="
+                + certificate.getSerialNumber().toString() + ".cer");
+
+        try {
+            var resource = certificate.getEncoded();
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/octet-stream"))
+                    .body(resource);
+        } catch (CertificateEncodingException e) {
+            return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
