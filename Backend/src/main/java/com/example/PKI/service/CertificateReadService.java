@@ -13,6 +13,6 @@ public interface CertificateReadService {
     public List<CertificateData> findAll();
     public List<CertificateData> findAllByUserRole(Role role,String email);
     public Collection<CertificateData> findCertificatesByUser(User user) throws KeyStoreException;
-    public Collection<CertificateDTO> findAllCertificatesByUser(User user);
+    public Collection<CertificateDTO> findAllCertificatesByUser(User user) throws KeyStoreException;
 
 }

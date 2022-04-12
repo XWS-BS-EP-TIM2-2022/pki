@@ -5,7 +5,6 @@ import com.example.PKI.dtos.CertificateDTO;
 import com.example.PKI.keystores.KeyStoreConfig;
 import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.model.CertificateData;
-import com.example.PKI.model.RevokedCertificate;
 import com.example.PKI.model.User;
 import com.example.PKI.model.enumerations.CertificateLevel;
 import com.example.PKI.model.enumerations.Role;
@@ -33,8 +32,6 @@ public class CertificateReadServiceImpl implements CertificateReadService {
     private KeyStoreReader keyStoreReader;
     @Autowired
     private KeyStoreConfig config;
-    @Autowired
-    private RevokedCertificateRepository revokedCertificateRepository;
 
     @Override
     public List<CertificateData> findAll() {
@@ -87,35 +84,19 @@ public class CertificateReadServiceImpl implements CertificateReadService {
     }
 
     @Override
-    public Collection<CertificateDTO> findAllCertificatesByUser(User user) {
+    public Collection<CertificateDTO> findAllCertificatesByUser(User user) throws KeyStoreException {
         List<CertificateData> certs = repository.findAllCertificatesByIssuer(user.getEmail());
-        List<CertificateDTO> allCertificates = new ArrayList<>();
-        String keyStoreName = "";
-        String keyStorePass = "";
+        List<CertificateDTO> userCertificates = new ArrayList<>();
         for (CertificateData cert: certs) {
-            boolean isCertRevoked = isCertificateRevoked(cert.getSerialNumber());
-            try {
-                keyStoreName = keyStoreReader.getKeyStoreNameByAlias(cert.getSerialNumber());
-                keyStorePass = keyStoreReader.getKeyStorePasswordByAlias(cert.getSerialNumber());
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-            }
-            X509Certificate certFromKS = (X509Certificate) keyStoreReader.readCertificate(keyStoreName, keyStorePass, cert.getSerialNumber());
+            X509Certificate certFromKS = readCertificate(cert);
+            boolean isCertRevoked = isCertificateRevoked(cert);
             Date validFrom = certFromKS.getNotBefore();
             Date validTo = certFromKS.getNotAfter();
             CertificateDTO createdCert = new CertificateDTO(cert.getSerialNumber(), cert.subjectEmail,
                                                                 cert.issuerEmail, validFrom, validTo, isCertRevoked);
-            allCertificates.add(createdCert);
+            userCertificates.add(createdCert);
         }
-        return allCertificates;
+        return userCertificates;
     }
 
-    private boolean isCertificateRevoked(String serialNumber) {
-        List<RevokedCertificate> revokedCerts = revokedCertificateRepository.findAll();
-        for (RevokedCertificate cert: revokedCerts) {
-            if(cert.getSerialNumber().equals(serialNumber) && cert.getRevoked())
-                return true;
-        }
-        return false;
-    }
 }

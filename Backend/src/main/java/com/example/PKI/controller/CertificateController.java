@@ -72,7 +72,7 @@ public class CertificateController {
     }
 
     @GetMapping(value="/get-all-certificates-for-user", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Collection<CertificateDTO>> getAllCertificatesForUser(Principal user) {
+    public ResponseEntity<Collection<CertificateDTO>> getAllCertificatesForUser(Principal user) throws KeyStoreException {
         var currentUser = userService.findByEmail(user.getName());
         return new ResponseEntity<>(certificateReadService.findAllCertificatesByUser(currentUser), HttpStatus.OK);
     }
