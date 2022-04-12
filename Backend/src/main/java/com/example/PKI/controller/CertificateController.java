@@ -1,6 +1,7 @@
 package com.example.PKI.controller;
 
 import com.example.PKI.dto.NewCertificateDTO;
+import com.example.PKI.dtos.CertificateDTO;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.model.User;
 import com.example.PKI.service.CertificateIssuingService;
@@ -68,5 +69,11 @@ public class CertificateController {
     public ResponseEntity<Collection<CertificateData>> getAllCertsForUser(Principal user) throws KeyStoreException {
         var currentUser = userService.findByEmail(user.getName());
         return new ResponseEntity<>(certificateReadService.findCertificatesByUser(currentUser), HttpStatus.OK);
+    }
+
+    @GetMapping(value="/get-all-certificates-for-user", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Collection<CertificateDTO>> getAllCertificatesForUser(Principal user) {
+        var currentUser = userService.findByEmail(user.getName());
+        return new ResponseEntity<>(certificateReadService.findAllCertificatesByUser(currentUser), HttpStatus.OK);
     }
 }

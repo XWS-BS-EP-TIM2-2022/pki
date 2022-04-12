@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { Certificate, CertificateDto } from '../model/certificate';
+import { Certificate, CertificateDto, CertificateViewModel } from '../model/certificate';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +13,10 @@ export class CertificateService {
 
   public getCertificatesForUser(): Observable<Certificate[]> {
     return this.http.get<Certificate[]>(environment.api + 'api/certificates/get-certificates-for-user');
+  }
+
+  public getAllCertificatesForUser(): Observable<CertificateViewModel[]> {
+    return this.http.get<CertificateViewModel[]>(environment.api + 'api/certificates/get-all-certificates-for-user');
   }
 
   public issueRootCertificate() {

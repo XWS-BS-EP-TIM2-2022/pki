@@ -1,14 +1,17 @@
 package com.example.PKI.service;
 
 import com.example.PKI.exception.CustomCertificateRevokedException;
+import com.example.PKI.dtos.CertificateDTO;
 import com.example.PKI.keystores.KeyStoreConfig;
 import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.model.CertificateData;
+import com.example.PKI.model.RevokedCertificate;
 import com.example.PKI.model.User;
 import com.example.PKI.model.enumerations.CertificateLevel;
 import com.example.PKI.model.enumerations.Role;
 import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.service.ocsp.OcspClientService;
+import com.example.PKI.repository.RevokedCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,7 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +33,8 @@ public class CertificateReadServiceImpl implements CertificateReadService {
     private KeyStoreReader keyStoreReader;
     @Autowired
     private KeyStoreConfig config;
+    @Autowired
+    private RevokedCertificateRepository revokedCertificateRepository;
 
     @Override
     public List<CertificateData> findAll() {
@@ -78,5 +84,38 @@ public class CertificateReadServiceImpl implements CertificateReadService {
             return (X509Certificate) keyStoreReader.readCertificate(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword(), cert.getSerialNumber());
         else
             return (X509Certificate) keyStoreReader.readCertificate(config.getEndCertKeystore(), config.getEndCertPassword(), cert.getSerialNumber());
+    }
+
+    @Override
+    public Collection<CertificateDTO> findAllCertificatesByUser(User user) {
+        List<CertificateData> certs = repository.findAllCertificatesByIssuer(user.getEmail());
+        List<CertificateDTO> allCertificates = new ArrayList<>();
+        String keyStoreName = "";
+        String keyStorePass = "";
+        for (CertificateData cert: certs) {
+            boolean isCertRevoked = isCertificateRevoked(cert.getSerialNumber());
+            try {
+                keyStoreName = keyStoreReader.getKeyStoreNameByAlias(cert.getSerialNumber());
+                keyStorePass = keyStoreReader.getKeyStorePasswordByAlias(cert.getSerialNumber());
+            } catch (KeyStoreException e) {
+                e.printStackTrace();
+            }
+            X509Certificate certFromKS = (X509Certificate) keyStoreReader.readCertificate(keyStoreName, keyStorePass, cert.getSerialNumber());
+            Date validFrom = certFromKS.getNotBefore();
+            Date validTo = certFromKS.getNotAfter();
+            CertificateDTO createdCert = new CertificateDTO(cert.getSerialNumber(), cert.subjectEmail,
+                                                                cert.issuerEmail, validFrom, validTo, isCertRevoked);
+            allCertificates.add(createdCert);
+        }
+        return allCertificates;
+    }
+
+    private boolean isCertificateRevoked(String serialNumber) {
+        List<RevokedCertificate> revokedCerts = revokedCertificateRepository.findAll();
+        for (RevokedCertificate cert: revokedCerts) {
+            if(cert.getSerialNumber().equals(serialNumber) && cert.getRevoked())
+                return true;
+        }
+        return false;
     }
 }

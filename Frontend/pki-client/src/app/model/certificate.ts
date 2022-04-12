@@ -19,3 +19,12 @@ export interface CertificateDto {
     issuerId: number;
     isCA: boolean;
 }
+
+export class CertificateViewModel {
+    serialNumber!: string;
+    subject!: string;
+    issuer!: string;
+    validFrom!: Date;
+    validTo!: Date;
+    isRevoked!: boolean;
+}
