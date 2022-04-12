@@ -58,9 +58,8 @@ public class CertificateController {
         CertificateData createdCert = null;
         try {
             createdCert = certificateIssuingService.issueNewCertificate(newCertificateDTO);
-        } catch (KeyStoreException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Certificate failed to create ex!", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
         if (createdCert == null)
             return new ResponseEntity<>("Certificate failed to create!", HttpStatus.BAD_REQUEST);
