@@ -1,60 +1,64 @@
 <div>
-    <section class="background d-flex flex-column justify-content-center">
-      <div class="container"></div>
-    </section>
-  </div>
-  
-  <div class="center row mt-4">
-    <div class="content mt-3">
+  <section class="background d-flex flex-column justify-content-center">
+    <div class="container"></div>
+  </section>
+</div>
+
+<div class="center row mt-4">
+  <div class="content mt-3">
+    <div class="back-link">
+      <a id="link" href="/certificates"
+        ><i class="bi bi-arrow-left-circle"></i
+      ></a>
       <h1 class="my-3">Certificate</h1>
-      <div class="row inputField">
-        <mat-form-field>
-          <mat-label>Serial number</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="serialNumber">
-        </mat-form-field>
-      </div>
-      <div class="row inputField" style="margin-top: 8px">
-        <mat-form-field>
-          <mat-label>Issuer</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="issuer">
-        </mat-form-field>
-      </div>
-      <div class="row inputField" style="margin-top: 8px">
-        <mat-form-field>
-          <mat-label>Subject</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="subject">
-        </mat-form-field>
-      </div>
-      <div class="row inputField" style="margin-top: 8px">
-        <mat-form-field>
-          <mat-label>Signature algorithm</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="signatureAlgorithm">
-        </mat-form-field>
-      </div>
-      <div class="row inputField" style="margin-top: 8px">
-        <mat-form-field>
-          <mat-label>Public key</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="publicKey">
-        </mat-form-field>
-      </div>
-      <div class="row inputField" style="margin-top: 8px;">
-        <mat-form-field>
-          <mat-label>Valid from</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="dateFrom">
-        </mat-form-field>
-      </div>
-      <div class="row inputField" style="margin-top: 8px;">
-        <mat-form-field>
-          <mat-label>Valid to</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="dateTo">
-        </mat-form-field>
-      </div>
-      <div class="row inputField" style="margin-top: 8px;">
-        <mat-form-field>
-          <mat-label>Version</mat-label>
-          <input matInput type="text" disabled [(ngModel)]="version">
-        </mat-form-field>
-      </div>
+    </div>
+    <div class="row inputField">
+      <mat-form-field>
+        <mat-label>Serial number</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="serialNumber" />
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Issuer</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="issuer" />
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Subject</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="subject" />
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Signature algorithm</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="signatureAlgorithm" />
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Public key</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="publicKey" />
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Valid from</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="dateFrom" />
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Valid to</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="dateTo" />
+      </mat-form-field>
+    </div>
+    <div class="row inputField" style="margin-top: 8px">
+      <mat-form-field>
+        <mat-label>Version</mat-label>
+        <input matInput type="text" disabled [(ngModel)]="version" />
+      </mat-form-field>
     </div>
   </div>
-  
+</div>

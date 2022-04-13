@@ -1,5 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito&display=swap");
 
+.center .content .back-link a {
+  font-weight: 200;
+  text-decoration: none;
+  text-transform: capitalize;
+  font-size: 25px;
+  text-align: end;
+}
+
+.back-link {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+}
+
 .background {
   background-color: rgb(0, 0, 0); /* Fallback color */
   background-color: rgba(0, 0, 0, 0.4); /* Black w/opacity/see-through */
@@ -14,8 +29,8 @@
   background: #faf9f9;
   border-radius: 10px;
   box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.05);
-  font-size: 18px;
-  width: 450px;
+  font-size: 15px;
+  width: 500px;
 }
 
 h1 {

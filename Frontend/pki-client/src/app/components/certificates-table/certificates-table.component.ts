@@ -18,6 +18,8 @@ export class CertificatesTableComponent implements OnInit {
   currentUser!: User;
   isAdmin = true;
   userCertificates!: CertificateViewModel[];
+  selectedCert!: CertificateViewModel;
+  showCertDetails = false;
 
   constructor(public certificateService: CertificateService, private _snackBar: MatSnackBar, public userService: UserService,
     public router: Router) { }
@@ -58,6 +60,11 @@ export class CertificatesTableComponent implements OnInit {
       link.click()
       URL.revokeObjectURL(link.href)
     });
+  }
+
+  selectCertificate(cert: CertificateViewModel) {
+    this.selectedCert = cert;
+    this.showCertDetails = true;
   }
 
 }

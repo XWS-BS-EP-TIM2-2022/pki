@@ -1,7 +1,7 @@
 package com.example.PKI.service;
 
 import com.example.PKI.exception.CustomCertificateRevokedException;
-import com.example.PKI.dtos.CertificateDTO;
+import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.keystores.KeyStoreConfig;
 import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.model.CertificateData;
@@ -10,7 +10,6 @@ import com.example.PKI.model.enumerations.CertificateLevel;
 import com.example.PKI.model.enumerations.Role;
 import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.service.ocsp.OcspClientService;
-import com.example.PKI.repository.RevokedCertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -98,17 +97,13 @@ public class CertificateReadServiceImpl implements CertificateReadService {
             boolean isCertRevoked = isCertificateRevoked(cert);
             Date validFrom = certFromKS.getNotBefore();
             Date validTo = certFromKS.getNotAfter();
+
+            String publicKey = certFromKS.getPublicKey().toString();
             CertificateDTO createdCert = new CertificateDTO(cert.getSerialNumber(), cert.subjectEmail,
-                                                                cert.issuerEmail, validFrom, validTo, isCertRevoked);
+                    cert.issuerEmail, validFrom, validTo, isCertRevoked, String.valueOf(certFromKS.getVersion()),
+                    cert.getCertificateName(), String.valueOf(certFromKS.getSigAlgName()), publicKey.split("\n")[0]);
             userCertificates.add(createdCert);
         }
         return userCertificates;
-    }
-
-    @Override
-    public CertificateDTO findBySerialNum(String serialNumber) {
-        var cert = repository.getBySerialNumber(serialNumber);
-        X509Certificate xCert = readCertificate(cert);
-        return new CertificateDTO(xCert.getSerialNumber().toString(), cert.getSubjectEmail(), cert.getIssuerEmail(), xCert.getNotBefore(), xCert.getNotAfter(), String.valueOf(xCert.getVersion()), cert.getCertificateName(), String.valueOf(xCert.getSignature()), String.valueOf(xCert.getPublicKey()));
     }
 }

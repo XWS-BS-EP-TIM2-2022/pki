@@ -4,7 +4,12 @@
   </section>
 </div>
 
-<table mat-table [dataSource]="userCertificates" class="mat-elevation-z8">
+<table
+  *ngIf="!showCertDetails"
+  mat-table
+  [dataSource]="userCertificates"
+  class="mat-elevation-z8"
+>
   <ng-container matColumnDef="subject">
     <th mat-header-cell *matHeaderCellDef>Issued To</th>
     <td mat-cell *matCellDef="let element">{{ element.subject }}</td>
@@ -26,7 +31,13 @@
     <th mat-header-cell *matHeaderCellDef>View Certificate</th>
     <td mat-cell *matCellDef="let element">
       <section>
-        <button mat-raised-button color="primary" [routerLink]="['/certificate-detail', element.serialNumber]">View</button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="selectCertificate(element)"
+        >
+          View
+        </button>
       </section>
     </td>
   </ng-container>
@@ -35,7 +46,9 @@
     <th mat-header-cell *matHeaderCellDef>Download Certificate</th>
     <td mat-cell *matCellDef="let element">
       <section>
-        <button mat-raised-button color="primary" (click)="download(element)">Download</button>
+        <button mat-raised-button color="primary" (click)="download(element)">
+          Download
+        </button>
       </section>
     </td>
   </ng-container>
@@ -44,14 +57,28 @@
     <th mat-header-cell *matHeaderCellDef>Certificate State</th>
     <td mat-cell *matCellDef="let element">
       <section>
-        <button *ngIf="!element.isRevoked && isAdmin" mat-raised-button color="warn"
-          (click)="revokeCertificate(element)">
+        <button
+          *ngIf="!element.isRevoked && isAdmin"
+          mat-raised-button
+          color="warn"
+          (click)="revokeCertificate(element)"
+        >
           Withdraw
         </button>
-        <button *ngIf="element.isRevoked" mat-raised-button color="warn" [disabled]="true">
+        <button
+          *ngIf="element.isRevoked"
+          mat-raised-button
+          color="warn"
+          [disabled]="true"
+        >
           Withdrawn
         </button>
-        <button *ngIf="!element.isRevoked && !isAdmin" mat-raised-button color="warn" [disabled]="true">
+        <button
+          *ngIf="!element.isRevoked && !isAdmin"
+          mat-raised-button
+          color="warn"
+          [disabled]="true"
+        >
           Valid
         </button>
       </section>
@@ -61,3 +88,7 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 </table>
+<app-certificate-detail
+  *ngIf="showCertDetails"
+  [currentCertificate]="selectedCert"
+></app-certificate-detail>

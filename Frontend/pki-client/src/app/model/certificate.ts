@@ -8,11 +8,11 @@ export class Certificate {
     level!: number;
     user!: User;
     certificateName!: string;
-    signatureAlgorithm!: string;
-    publicKey!: string;
-    dateFrom!: string;
-    dateTo!: string;
-    version!: string;
+    // signatureAlgorithm!: string;
+    // publicKey!: string;
+    // dateFrom!: string;
+    // dateTo!: string;
+    // version!: string;
 }
 
 export interface CertificateDto {
@@ -31,4 +31,8 @@ export class CertificateViewModel {
     validFrom!: Date;
     validTo!: Date;
     isRevoked!: boolean;
+    version!: string;
+    certificateName!: string;
+    signatureAlgorithm!: string;
+    publicKey!: string;
 }

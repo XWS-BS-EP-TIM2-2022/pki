@@ -1,7 +1,7 @@
 package com.example.PKI.controller;
 
 import com.example.PKI.dto.NewCertificateDTO;
-import com.example.PKI.dtos.CertificateDTO;
+import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.model.User;
 import com.example.PKI.service.CertificateIssuingService;
@@ -9,20 +9,16 @@ import com.example.PKI.service.CertificateReadService;
 import com.example.PKI.service.UserService;
 import com.example.PKI.service.ocsp.OcspClientService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.Principal;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.Collection;
 
 @RestController
@@ -99,10 +95,5 @@ public class CertificateController {
         } catch (CertificateEncodingException e) {
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    @GetMapping(value="/get-certificate", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CertificateDTO> getCertificate(String serialNumber) throws KeyStoreException {
-        return new ResponseEntity<>(certificateReadService.findBySerialNum(serialNumber), HttpStatus.OK);
     }
 }

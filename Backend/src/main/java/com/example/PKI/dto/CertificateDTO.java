@@ -1,4 +1,4 @@
-package com.example.PKI.dtos;
+package com.example.PKI.dto;
 
 import com.example.PKI.data.IssuerData;
 import com.example.PKI.data.SubjectData;
@@ -17,26 +17,21 @@ public class CertificateDTO {
     private String signatureAlgorithm;
     private String publicKey;
 
-    public CertificateDTO(String serialNumber, String subject, String issuer, Date validFrom, Date validTo, boolean isRevoked) {
+
+    public CertificateDTO(String serialNumber, String subject, String issuer, Date validFrom, Date validTo, boolean isRevoked, String version, String name, String signatureAlgorithm, String publicKey) {
         this.serialNumber = serialNumber;
         this.subject = subject;
         this.issuer = issuer;
         this.validFrom = validFrom;
         this.validTo = validTo;
         this.isRevoked = isRevoked;
-    }
-
-    public CertificateDTO(String serialNumber, String subject, String issuer, Date validFrom, Date validTo, String version, String name, String signatureAlgorithm, String publicKey) {
-        this.serialNumber = serialNumber;
-        this.subject = subject;
-        this.issuer = issuer;
-        this.validFrom = validFrom;
-        this.validTo = validTo;
         this.version = version;
         this.name = name;
         this.signatureAlgorithm = signatureAlgorithm;
         this.publicKey = publicKey;
     }
+
+
 
     public String getSerialNumber() {
         return serialNumber;

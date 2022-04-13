@@ -53,6 +53,7 @@ public class CertificateIssuingService {
 
         if (keystoreReader.rootAlreadyExists(String.valueOf(serialNumber)))
             return null;
+
         KeyPair keyPair = generateKeys();
         IssuerData issuer = new IssuerData(keyPair.getPrivate(), getDataForSelfSigned(admin).build());
 

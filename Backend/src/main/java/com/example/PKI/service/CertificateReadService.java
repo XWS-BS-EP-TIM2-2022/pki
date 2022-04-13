@@ -1,6 +1,6 @@
 package com.example.PKI.service;
 
-import com.example.PKI.dtos.CertificateDTO;
+import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.model.User;
 import com.example.PKI.model.enumerations.Role;
@@ -16,5 +16,4 @@ public interface CertificateReadService {
     public Collection<CertificateData> findCertificatesByUser(User user) throws KeyStoreException;
     public Collection<CertificateDTO> findAllCertificatesByUser(User user) throws KeyStoreException;
     public X509Certificate findBySerialNumber(String serialNumber);
-    public CertificateDTO findBySerialNum(String serialNumber);
 }
