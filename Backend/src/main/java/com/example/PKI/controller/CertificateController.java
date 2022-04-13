@@ -2,6 +2,7 @@ package com.example.PKI.controller;
 
 import com.example.PKI.dto.NewCertificateDTO;
 import com.example.PKI.dto.CertificateDTO;
+import com.example.PKI.exception.CertificatesRevokingException;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.model.User;
 import com.example.PKI.service.CertificateIssuingService;
@@ -43,8 +44,14 @@ public class CertificateController {
 
     @PostMapping("/revoke")
     public ResponseEntity<?> revokeCertificate(@RequestBody String serialNumber){
-        ocspClientService.revokeCertificate(serialNumber);
-        return ResponseEntity.ok().build();
+        try {
+            ocspClientService.revokeCertificate(serialNumber);
+            return ResponseEntity.ok().build();
+        }catch (CertificatesRevokingException exception){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Certificates revoking exception");
+        }catch (Exception ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @GetMapping("/")

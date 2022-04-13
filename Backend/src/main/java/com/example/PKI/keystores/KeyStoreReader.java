@@ -7,6 +7,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import com.example.PKI.data.IssuerData;
+import com.example.PKI.model.CertificateData;
+import com.example.PKI.model.enumerations.CertificateLevel;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -195,5 +197,13 @@ public class KeyStoreReader {
 			return config.getEndCertPassword();
 
 		return null;
+	}
+	public X509Certificate getCertificateByCertificateData(CertificateData cert) {
+		if (cert.getLevel() == CertificateLevel.Root)
+			return (X509Certificate) this.readCertificate(config.getRootCertKeystore(), config.getRootCertPassword(), cert.getSerialNumber());
+		else if (cert.getLevel() == CertificateLevel.Intermediate)
+			return (X509Certificate) this.readCertificate(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword(), cert.getSerialNumber());
+		else
+			return (X509Certificate) this.readCertificate(config.getEndCertKeystore(), config.getEndCertPassword(), cert.getSerialNumber());
 	}
 }

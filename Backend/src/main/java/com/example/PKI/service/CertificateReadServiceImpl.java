@@ -66,11 +66,11 @@ public class CertificateReadServiceImpl implements CertificateReadService {
     @Override
     public X509Certificate findBySerialNumber(String serialNumber) {
         var cert = repository.getBySerialNumber(serialNumber);
-        return readCertificate(cert);
+        return keyStoreReader.getCertificateByCertificateData(cert);
     }
 
     private boolean isCertificateRevoked(CertificateData data) throws KeyStoreException {
-        X509Certificate cert = readCertificate(data);
+        X509Certificate cert =keyStoreReader.getCertificateByCertificateData(data);
         try {
             ocspClientService.validateCertificate(cert);
         }catch (CustomCertificateRevokedException exception) {
@@ -79,21 +79,12 @@ public class CertificateReadServiceImpl implements CertificateReadService {
         return false;
     }
 
-    private X509Certificate readCertificate(CertificateData cert) {
-        if (cert.getLevel() == CertificateLevel.Root)
-            return (X509Certificate) keyStoreReader.readCertificate(config.getRootCertKeystore(), config.getRootCertPassword(), cert.getSerialNumber());
-        else if (cert.getLevel() == CertificateLevel.Intermediate)
-            return (X509Certificate) keyStoreReader.readCertificate(config.getIntermediateCertKeystore(), config.getIntermediateCertPassword(), cert.getSerialNumber());
-        else
-            return (X509Certificate) keyStoreReader.readCertificate(config.getEndCertKeystore(), config.getEndCertPassword(), cert.getSerialNumber());
-    }
-
     @Override
     public Collection<CertificateDTO> findAllCertificatesByUser(User user) throws KeyStoreException {
         List<CertificateData> certs = findAllByUserRole(user.getRole(), user.getEmail());
         List<CertificateDTO> userCertificates = new ArrayList<>();
         for (CertificateData cert: certs) {
-            X509Certificate certFromKS = readCertificate(cert);
+            X509Certificate certFromKS = keyStoreReader.getCertificateByCertificateData(cert);
             boolean isCertRevoked = isCertificateRevoked(cert);
             Date validFrom = certFromKS.getNotBefore();
             Date validTo = certFromKS.getNotAfter();
