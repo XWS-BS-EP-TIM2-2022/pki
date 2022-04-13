@@ -35,7 +35,7 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('userType', data.appUserType)
         localStorage.setItem('jwt', data.userTokenState.accessToken)
         this.loginService.isLoggedIn = true;
-        this.router.navigate(['/certificates'])
+        window.location.href = '/certificates'
       },
       error: (err) => { alert("Invalid username/password!") }
     });

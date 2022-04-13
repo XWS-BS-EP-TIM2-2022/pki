@@ -105,8 +105,11 @@ public class UserController {
 
     @GetMapping(value="/find-all-clients", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<UserDTO>> findClients() {
+        var currentUser = appUserService.getLoggedInUser();
         var users = appUserService.findAll();
-        var clients = users.stream().filter(user -> user.getRole() == Role.Intermediate || user.getRole() == Role.EndUser)
+        var clients = users.stream()
+                .filter(user -> user.getEmail() != currentUser.getEmail() &&
+                        (user.getRole() == Role.Intermediate || user.getRole() == Role.EndUser))
                 .collect(Collectors.toCollection(ArrayList::new));
         return new ResponseEntity(clients, HttpStatus.OK);
     }

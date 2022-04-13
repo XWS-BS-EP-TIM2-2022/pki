@@ -7,14 +7,10 @@ public class NewCertificateDTO {
     private String issuerSerialNumber;
     private Date validFrom;
     private Date validTo;
-    private List<Integer> keyUsages;
     private Long subjectId;
     private Long issuerId;
     private boolean isCA;
-    public List<Integer> addKeyUsage(Integer i){
-         keyUsages.add(i);
-         return keyUsages;
-    }
+
     public String getIssuerSerialNumber() {
         return issuerSerialNumber;
     }
@@ -37,14 +33,6 @@ public class NewCertificateDTO {
 
     public void setValidTo(Date validTo) {
         this.validTo = validTo;
-    }
-
-    public List<Integer> getKeyUsages() {
-        return keyUsages;
-    }
-
-    public void setKeyUsages(List<Integer> keyUsages) {
-        this.keyUsages = keyUsages;
     }
 
     public Long getSubjectId() {

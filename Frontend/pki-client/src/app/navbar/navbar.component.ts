@@ -50,7 +50,7 @@ export class NavbarComponent implements OnInit {
       (data) => {
         this.snackBar.open("New root certificate successfully created!", "Dismiss", { duration: 3000 });
         setTimeout(() => {
-          this.route.navigate(['/certificates'])
+          window.location.href = '/certificates'
         }, 500)
       },
       (error) => {

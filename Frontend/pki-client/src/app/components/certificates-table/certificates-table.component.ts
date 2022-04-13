@@ -5,6 +5,7 @@ import { Certificate, CertificateViewModel } from 'src/app/model/certificate';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from 'src/app/services/user.service';
 import { User } from 'src/app/model/user';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-certificates-table',
@@ -18,7 +19,8 @@ export class CertificatesTableComponent implements OnInit {
   isAdmin = true;
   userCertificates!: CertificateViewModel[];
 
-  constructor(public certificateService: CertificateService, private _snackBar: MatSnackBar, public userService: UserService) { }
+  constructor(public certificateService: CertificateService, private _snackBar: MatSnackBar, public userService: UserService,
+    public router: Router) { }
 
   ngOnInit(): void {
     this.userService.getCurrentUser().subscribe(data => {

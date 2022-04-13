@@ -57,17 +57,10 @@ export class NewCertificateFormComponent implements OnInit {
     else
       isCA = false;
 
-    let keyUsages = []
-    if (isCA)
-      keyUsages = [128, 4, 32, 2];
-    else
-      keyUsages = [0, 2, 3];
-
     let dto: CertificateDto = {
       issuerSerialNumber: this.selectedIssuer,
       validFrom: this.startDate,
       validTo: this.endDate,
-      keyUsages: keyUsages,
       subjectId: this.selectedSubject,
       issuerId: this.currentUser.id,
       isCA: isCA,

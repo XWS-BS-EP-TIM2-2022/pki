@@ -14,7 +14,6 @@ export interface CertificateDto {
     issuerSerialNumber: string;
     validFrom: Date;
     validTo: Date;
-    keyUsages: number[];
     subjectId: number;
     issuerId: number;
     isCA: boolean;

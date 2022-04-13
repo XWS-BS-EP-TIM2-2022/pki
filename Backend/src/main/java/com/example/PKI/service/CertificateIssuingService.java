@@ -29,10 +29,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class CertificateIssuingService {
@@ -83,6 +80,11 @@ public class CertificateIssuingService {
     public CertificateData issueNewCertificate(NewCertificateDTO newCertificateDTO) throws Exception {
 
         canNewCertificateBeIssued(newCertificateDTO);
+        List<Integer> keyUsages = new ArrayList<Integer>();
+        if (newCertificateDTO.getIsCA())
+            keyUsages.addAll(initRootKeyUsages());
+        else
+            keyUsages.addAll(initEndCertKeyUsages());
 
         IssuerData issuerData = keystoreReader.getIssuerData(newCertificateDTO.getIssuerSerialNumber());
         KeyPair keyPair = this.generateKeys();
@@ -94,7 +96,7 @@ public class CertificateIssuingService {
                 newCertificateDTO.getValidFrom(),
                 newCertificateDTO.getValidTo());
         String issuerEmail = String.valueOf(issuerData.getX500name().getRDNs(BCStyle.E)[0].getFirst().getValue());
-        X509Certificate cert = certificateGenerator.generateCertificate(subjectData, issuerData, newCertificateDTO.getKeyUsages(),
+        X509Certificate cert = certificateGenerator.generateCertificate(subjectData, issuerData, keyUsages,
                 newCertificateDTO.getIsCA());
         this.verifySignedCertificateSigne(newCertificateDTO, cert);
 
@@ -106,6 +108,12 @@ public class CertificateIssuingService {
                 subject.getEmail(),
                 newCertificateDTO.getIsCA() ? CertificateLevel.Intermediate : CertificateLevel.End,subject, certificateName);
         return saveToDatabase(certificateData);
+    }
+
+    private ArrayList<Integer> initEndCertKeyUsages() {
+        var keyUsages = new ArrayList<Integer>();
+        keyUsages.add(KeyUsage.digitalSignature);
+        return keyUsages;
     }
 
     private int countUsersCertificates(User user) {
