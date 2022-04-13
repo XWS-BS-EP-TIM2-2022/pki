@@ -102,7 +102,7 @@ public class CertificateIssuingService {
         this.verifySignedCertificateSigne(newCertificateDTO, cert);
 
         User issuer = userRepository.getById(newCertificateDTO.getIssuerId());
-        String certificateName = issuer.getCommonName() + "'s certificate " + (countUsersCertificates(issuer) + 1);
+        String certificateName = subject.getCommonName() + "'s certificate " + (countUsersCertificates(issuer) + 1);
 
         keyStoreWriter.saveToKeyStore(cert.getSerialNumber().toString(), newCertificateDTO.getIsCA(), cert, keyPair.getPrivate());
         CertificateData certificateData=new CertificateData(cert.getSerialNumber().toString(),issuerEmail,getIssuerCertificate(newCertificateDTO.getIssuerSerialNumber()).getSerialNumber().toString(),

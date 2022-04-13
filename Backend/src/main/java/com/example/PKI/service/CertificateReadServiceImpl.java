@@ -52,7 +52,7 @@ public class CertificateReadServiceImpl implements CertificateReadService {
     public Collection<CertificateData> findCertificatesByUser(User user) throws KeyStoreException {
         var usersCerts = findAllByUserRole(user.getRole(), user.getEmail())
                 .stream()
-                .filter(cert -> cert.getLevel() != CertificateLevel.End)
+                .filter(cert -> cert.getLevel() != CertificateLevel.End && cert.getSubjectEmail().equals(user.getEmail()))
                 .collect(Collectors.toList());
         var notRevoked = new ArrayList<CertificateData>();
         for (var cert : usersCerts) {

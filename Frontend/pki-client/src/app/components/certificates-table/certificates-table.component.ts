@@ -31,6 +31,7 @@ export class CertificatesTableComponent implements OnInit {
     });
 
     this.certificateService.getAllCertificatesForUser().subscribe(res => this.userCertificates = res);
+    this.showCertDetails = false;
   }
 
   revokeCertificate(certificate: CertificateViewModel) {
