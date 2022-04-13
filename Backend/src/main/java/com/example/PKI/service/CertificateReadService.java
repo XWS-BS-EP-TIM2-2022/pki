@@ -16,4 +16,5 @@ public interface CertificateReadService {
     public Collection<CertificateData> findCertificatesByUser(User user) throws KeyStoreException;
     public Collection<CertificateDTO> findAllCertificatesByUser(User user) throws KeyStoreException;
     public X509Certificate findBySerialNumber(String serialNumber);
+    public CertificateDTO findBySerialNum(String serialNumber);
 }

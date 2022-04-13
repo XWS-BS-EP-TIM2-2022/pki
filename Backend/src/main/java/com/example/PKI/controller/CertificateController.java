@@ -100,4 +100,9 @@ public class CertificateController {
             return new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping(value="/get-certificate", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CertificateDTO> getCertificate(String serialNumber) throws KeyStoreException {
+        return new ResponseEntity<>(certificateReadService.findBySerialNum(serialNumber), HttpStatus.OK);
+    }
 }

@@ -26,7 +26,7 @@
     <th mat-header-cell *matHeaderCellDef>View Certificate</th>
     <td mat-cell *matCellDef="let element">
       <section>
-        <button mat-raised-button color="primary">View</button>
+        <button mat-raised-button color="primary" [routerLink]="['/certificate-detail', element.serialNumber]">View</button>
       </section>
     </td>
   </ng-container>

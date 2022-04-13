@@ -105,4 +105,10 @@ public class CertificateReadServiceImpl implements CertificateReadService {
         return userCertificates;
     }
 
+    @Override
+    public CertificateDTO findBySerialNum(String serialNumber) {
+        var cert = repository.getBySerialNumber(serialNumber);
+        X509Certificate xCert = readCertificate(cert);
+        return new CertificateDTO(xCert.getSerialNumber().toString(), cert.getSubjectEmail(), cert.getIssuerEmail(), xCert.getNotBefore(), xCert.getNotAfter(), String.valueOf(xCert.getVersion()), cert.getCertificateName(), String.valueOf(xCert.getSignature()), String.valueOf(xCert.getPublicKey()));
+    }
 }

@@ -20,6 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { NewCertificateFormComponent } from './components/new-certificate-form/new-certificate-form.component';
 import { TokenInterceptor } from './interceptor/tokenInterceptor';
+import { CertificateDetailComponent } from './components/certificate-detail/certificate-detail.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { TokenInterceptor } from './interceptor/tokenInterceptor';
     NavbarComponent,
     RegisterComponent,
     NewCertificateFormComponent,
+    CertificateDetailComponent,
   ],
   imports: [
     BrowserModule,

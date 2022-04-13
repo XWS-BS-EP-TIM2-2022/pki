@@ -8,6 +8,11 @@ export class Certificate {
     level!: number;
     user!: User;
     certificateName!: string;
+    signatureAlgorithm!: string;
+    publicKey!: string;
+    dateFrom!: string;
+    dateTo!: string;
+    version!: string;
 }
 
 export interface CertificateDto {
