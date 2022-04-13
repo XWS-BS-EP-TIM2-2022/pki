@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -13,10 +14,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.PKI.exception.CertificatesRevokingException;
 import com.example.PKI.exception.CustomCertificateRevokedException;
 import com.example.PKI.keystores.KeyStoreReader;
 import com.example.PKI.model.CertificateData;
 import com.example.PKI.repository.CertificateRepository;
+import com.example.PKI.service.CertificateReadService;
 import org.bouncycastle.asn1.*;
 import org.bouncycastle.asn1.ocsp.BasicOCSPResponse;
 import org.bouncycastle.asn1.x509.AccessDescription;
@@ -30,10 +33,11 @@ import org.bouncycastle.operator.DigestCalculatorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OcspClientServiceImpl  implements  OcspClientService{
+public class OcspClientServiceImpl implements OcspClientService {
 
     @Autowired
     private KeyStoreReader reader;
@@ -48,46 +52,67 @@ public class OcspClientServiceImpl  implements  OcspClientService{
 
     @Override
     public void revokeCertificate(String serialNumber) {
-        CertificateData certificateData=certificateRepository.findById(serialNumber).get();
-        int statusCode;
-        String url="http://localhost:8080/api/ocsp/revoke";
-        if(certificateData.isEndUser()){
-             statusCode=this.sendRevokeRequest(url,List.of(serialNumber));
-        }else{
-            List<CertificateData> certificatesIssuedBy=certificateRepository.findAllCertificatesByIssuerCertificateSerialNum(serialNumber);
-            certificatesIssuedBy.add(certificateData);
-            statusCode=this.sendRevokeRequest(url,certificatesIssuedBy.stream().map(CertificateData::getSerialNumber).collect(Collectors.toList()));
-        }
-        if(statusCode==200) System.out.println("USPIJESNO");
-        else
-            System.out.println("NIJE USPIJESNO");
+        CertificateData certificateData = certificateRepository.findById(serialNumber).get();
+        String url = getCABaseUrl(certificateData);
+        List<String> serialNumbersToRevoke = getCertificateToRevokeSerialNumbers(certificateData);
+        int statusCode = this.sendRevokeRequest(url, serialNumbersToRevoke);
+        if (statusCode != 200) throw new CertificatesRevokingException();
     }
 
-    public int sendRevokeRequest(String url, List<String> serialNumbers) {
-        HttpURLConnection conn=null;
+    private String getCABaseUrl(CertificateData certificateData) {
+        X509Certificate x509Certificate = reader.getCertificateByCertificateData(certificateData);
         try {
-            HttpURLConnection con=this.createConnection(url);
-            DataOutputStream dos=new DataOutputStream(con.getOutputStream());
+            return getOCSPUrl(x509Certificate) + "/api/ocsp/revoke";
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new CertificatesRevokingException();
+        }
+    }
+
+    private List<String> getCertificateToRevokeSerialNumbers(CertificateData certificateData) {
+        List<String> serialNumbersToRevoke=new ArrayList<>(){{add(certificateData.getSerialNumber());}};
+        if (certificateData.isEndUser()) return serialNumbersToRevoke;
+        serialNumbersToRevoke.addAll(this.findCertificateIssuedBy(certificateData).stream().map(CertificateData::getSerialNumber).collect(Collectors.toList()));
+        return serialNumbersToRevoke;
+    }
+
+    private List<CertificateData> findCertificateIssuedBy(CertificateData certificate) {
+        if (certificate.isEndUser()) return List.of(certificate);
+        List<CertificateData> certificatesIssuedBy = certificateRepository.findAllCertificatesByIssuerCertificateSerialNum(certificate.getSerialNumber());
+        List<CertificateData> subCertificates = new ArrayList<>();
+        for (CertificateData subCertificate : certificatesIssuedBy) {
+            subCertificates.addAll(this.findCertificateIssuedBy(subCertificate));
+        }
+        certificatesIssuedBy.addAll(subCertificates);
+        return certificatesIssuedBy;
+    }
+
+
+    public int sendRevokeRequest(String url, List<String> serialNumbers) {
+        HttpURLConnection conn = null;
+        try {
+            HttpURLConnection con = this.createConnection(url);
+            DataOutputStream dos = new DataOutputStream(con.getOutputStream());
             dos.writeUTF(this.parseStringArray(serialNumbers));
             dos.flush();
             return con.getResponseCode();
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
-        }finally {
-            if(conn!=null) conn.disconnect();
+        } finally {
+            if (conn != null) conn.disconnect();
         }
         return -1;
     }
 
     private String parseStringArray(List<String> serialNumbers) {
-        StringBuilder builder=new StringBuilder();
-        for (String s:serialNumbers)
-            builder.append(s+";");
+        StringBuilder builder = new StringBuilder();
+        for (String s : serialNumbers)
+            builder.append(s + ";");
         return builder.toString();
     }
 
-    private void validateOcspRespStatus(BasicOCSPResp resp){
-        if(resp.getResponses()[0].getCertStatus()!=null)
+    private void validateOcspRespStatus(BasicOCSPResp resp) {
+        if (resp.getResponses()[0].getCertStatus() != null)
             throw new CustomCertificateRevokedException();
     }
 
@@ -103,17 +128,17 @@ public class OcspClientServiceImpl  implements  OcspClientService{
 
     private BasicOCSPResp requestOCSPResponse(String ocspUrl, OCSPReq ocspReq) {
         HttpURLConnection con = null;
-        try{
-            con=this.createConnection(ocspUrl);
+        try {
+            con = this.createConnection(ocspUrl);
             con.setRequestProperty("Content-Type", "application/ocsp-request");
-            OutputStream outputStream=con.getOutputStream();
-            BufferedOutputStream writer=new BufferedOutputStream(outputStream);
+            OutputStream outputStream = con.getOutputStream();
+            BufferedOutputStream writer = new BufferedOutputStream(outputStream);
             writer.write(ocspReq.getEncoded());
             writer.flush();
-            ASN1InputStream asn1InputStream=new ASN1InputStream(con.getInputStream());
+            ASN1InputStream asn1InputStream = new ASN1InputStream(con.getInputStream());
             ASN1Primitive obj = asn1InputStream.readObject();
-            BasicOCSPResponse re=BasicOCSPResponse.getInstance(obj);
-            BasicOCSPResp basicOCSPResp=new BasicOCSPResp(re);
+            BasicOCSPResponse re = BasicOCSPResponse.getInstance(obj);
+            BasicOCSPResp basicOCSPResp = new BasicOCSPResp(re);
             return basicOCSPResp;
         } catch (ProtocolException e) {
             e.printStackTrace();
@@ -121,44 +146,24 @@ public class OcspClientServiceImpl  implements  OcspClientService{
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
-            if(con!=null)
+        } finally {
+            if (con != null)
                 con.disconnect();
         }
         return null;
     }
 
     private String getOCSPUrl(X509Certificate certificate) throws IOException {
-        return "http://localhost:8080/api/ocsp/validate";
-
-        //TODO: Izvuci iz authorityinfoa url
-        /*ASN1Primitive obj;
+        ASN1Primitive obj;
         try {
             obj = getExtensionValue(certificate, Extension.authorityInfoAccess.getId());
         } catch (IOException ex) {
             return null;
         }
-
-        if (obj == null) {
-            return null;
-        }
+        if (obj == null) return null;
         AuthorityInformationAccess authorityInformationAccess = AuthorityInformationAccess.getInstance(obj);
-        AccessDescription[] accessDescriptions = authorityInformationAccess.getAccessDescriptions();
-        for (AccessDescription accessDescription : accessDescriptions) {
-            boolean correctAccessMethod = accessDescription.getAccessMethod().equals(X509ObjectIdentifiers.ocspAccessMethod);
-            if (!correctAccessMethod) {
-                continue;
-            }
-
-            GeneralName name = accessDescription.getAccessLocation();
-            if (name.getTagNo() != GeneralName.uniformResourceIdentifier) {
-                continue;
-            }
-
-            DERIA5String derStr = DERIA5String.getInstance((ASN1TaggedObject) name.toASN1Primitive(), false);
-            return derStr.getString();
-        }
-        return null;*/
+        DERIA5String derStr = DERIA5String.getInstance((ASN1TaggedObject) authorityInformationAccess.getAccessDescriptions()[0].getAccessLocation().toASN1Primitive(), false);
+        return derStr.getString();
     }
 
     private static ASN1Primitive getExtensionValue(X509Certificate certificate, String oid) throws IOException {
@@ -190,24 +195,23 @@ public class OcspClientServiceImpl  implements  OcspClientService{
     private BasicOCSPResp sendOCSPRequest(X509Certificate certificate) {
         try {
             OCSPReq request = this.generateOCSPRequest(certificate);
-            String caUrl=getOCSPUrl(null);
-            return this.requestOCSPResponse(caUrl,request);
-        }catch (Exception e){
+            String caUrl = getOCSPUrl(certificate)+"/api/ocsp/validate";
+            return this.requestOCSPResponse(caUrl, request);
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
     public static void main(String[] args) {
-        OcspClientServiceImpl ocspClientService=new OcspClientServiceImpl();
-        KeyStoreReader keyStoreReader =new KeyStoreReader();
-        X509Certificate cert=(X509Certificate) keyStoreReader.readCertificate("certificates/root-cert.pfx","password","44588022343601368361979429911528518916");
-        ocspClientService.validateCertificate(cert);
-        String url="http://localhost:8080/api/ocsp/revoke";
-        List<String> lit=new ArrayList<>();
-        lit.add("1230");
-        lit.add("1555");
-        ocspClientService.sendRevokeRequest(url,lit);
+        OcspClientServiceImpl ocspClientService = new OcspClientServiceImpl();
+        KeyStoreReader keyStoreReader = new KeyStoreReader();
+        X509Certificate cert = (X509Certificate) keyStoreReader.readCertificate("certificates/root-cert.pfx", "password", "185199222108429939121308040734458774561");
+        try {
+            ocspClientService.getOCSPUrl(cert);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         //ocspClientService.revokeCertificate(issuerCert);
     }
 }

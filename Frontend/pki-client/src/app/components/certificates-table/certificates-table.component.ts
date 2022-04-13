@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
   providers: [DatePipe]
 })
 export class CertificatesTableComponent implements OnInit {
-  displayedColumns: string[] = ['subject', 'issuer', 'validPeriod', 'viewCert', 'download', "withdraw"];
+  displayedColumns: string[] = ['subject', 'issuer', 'validPeriod', 'viewCert', 'download', "revoke"];
   currentUser!: User;
   isAdmin = true;
   userCertificates!: CertificateViewModel[];
@@ -37,7 +37,7 @@ export class CertificatesTableComponent implements OnInit {
     this.certificateService.revokeCertificate(certificate.serialNumber).subscribe(
       (data) => {
         this.certificateService.getAllCertificatesForUser().subscribe(res => this.userCertificates = res);
-        this._snackBar.open('Certificate successfully withdrawn', 'Dissmiss', {
+        this._snackBar.open('Certificate successfully revoked', 'Dissmiss', {
           duration: 3000
         });
 
@@ -45,7 +45,7 @@ export class CertificatesTableComponent implements OnInit {
         }, 1000);
       },
       (error) => {
-        this._snackBar.open('Certificate could not be withdrawn', 'Dissmiss', {
+        this._snackBar.open('Certificate could not be revoked', 'Dissmiss', {
           duration: 3000
         });
       });
