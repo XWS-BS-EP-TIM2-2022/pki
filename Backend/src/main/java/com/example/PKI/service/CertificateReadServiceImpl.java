@@ -51,7 +51,7 @@ public class CertificateReadServiceImpl implements CertificateReadService {
     }
 
     public Collection<CertificateData> findCertificatesByUser(User user) throws KeyStoreException {
-        var usersCerts = repository.findAllCertificatesByIssuer(user.getEmail())
+        var usersCerts = findAllByUserRole(user.getRole(), user.getEmail())
                 .stream()
                 .filter(cert -> cert.getLevel() != CertificateLevel.End)
                 .collect(Collectors.toList());
@@ -91,7 +91,7 @@ public class CertificateReadServiceImpl implements CertificateReadService {
 
     @Override
     public Collection<CertificateDTO> findAllCertificatesByUser(User user) throws KeyStoreException {
-        List<CertificateData> certs = repository.findAllCertificatesByIssuer(user.getEmail());
+        List<CertificateData> certs = findAllByUserRole(user.getRole(), user.getEmail());
         List<CertificateDTO> userCertificates = new ArrayList<>();
         for (CertificateData cert: certs) {
             X509Certificate certFromKS = readCertificate(cert);

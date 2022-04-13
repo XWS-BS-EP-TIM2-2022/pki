@@ -37,7 +37,7 @@ public class CertificateGenerator {
 											   boolean isCA) {
 		try {
 			Security.addProvider(new BouncyCastleProvider());
-			JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WITHDSA");
+			JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
 			builder = builder.setProvider("BC");
 
 			ContentSigner contentSigner = builder.build(issuerData.getPrivateKey());
@@ -54,7 +54,7 @@ public class CertificateGenerator {
 			certGen.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(new GeneralName(GeneralName.dNSName, "localhost")));
 			AuthorityInformationAccess authorityInformationAccess= new AuthorityInformationAccess(X509ObjectIdentifiers.ocspAccessMethod,
 					new GeneralName(GeneralName.uniformResourceIdentifier, "http://localhost:8080"));
-			certGen.addExtension(Extension.authorityInfoAccess,true,authorityInformationAccess);
+			certGen.addExtension(Extension.authorityInfoAccess,true, authorityInformationAccess);
 			X509CertificateHolder certHolder = certGen.build(contentSigner);
 			JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
 			certConverter = certConverter.setProvider("BC");

@@ -15,7 +15,7 @@
           <a class="nav-link" routerLink="register">Register</a>
         </li>
         <li class="nav-item" *ngIf="isLoggedIn()">
-          <a class="nav-link" aria-current="page" href="/certificates">All Certificates</a>
+          <a class="nav-link" href="/certificates">All Certificates</a>
         </li>
         <li class="nav-item" *ngIf="isLoggedIn() && (isAdmin() || isIntermediate())">
           <a class="nav-link" href="/new-certificate">Issue new certificate</a>

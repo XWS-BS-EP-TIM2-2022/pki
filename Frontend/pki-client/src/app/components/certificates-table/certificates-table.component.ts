@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { CertificateService } from 'src/app/services/certificate.service';
-import { CertificateViewModel } from 'src/app/model/certificate';
+import { Certificate, CertificateViewModel } from 'src/app/model/certificate';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from 'src/app/services/user.service';
 import { User } from 'src/app/model/user';
@@ -13,9 +13,9 @@ import { User } from 'src/app/model/user';
   providers: [DatePipe]
 })
 export class CertificatesTableComponent implements OnInit {
-  displayedColumns: string[] = ['subject', 'issuer', 'validPeriod', 'viewCert','download', "withdraw"];
+  displayedColumns: string[] = ['subject', 'issuer', 'validPeriod', 'viewCert', 'download', "withdraw"];
   currentUser!: User;
-  isAdmin=true;
+  isAdmin = true;
   userCertificates!: CertificateViewModel[];
 
   constructor(public certificateService: CertificateService, private _snackBar: MatSnackBar, public userService: UserService) { }
@@ -25,18 +25,17 @@ export class CertificatesTableComponent implements OnInit {
       this.currentUser = data;
       this.isAdmin = this.currentUser.role === 'Admin';
     });
-    
-    this.certificateService.getAllCertificatesForUser().subscribe( res => this.userCertificates = res );
+
+    this.certificateService.getAllCertificatesForUser().subscribe(res => this.userCertificates = res);
   }
 
   revokeCertificate(certificate: CertificateViewModel) {
     this.certificateService.revokeCertificate(certificate.serialNumber).subscribe(
       (data) => {
-        this.certificateService.getAllCertificatesForUser().subscribe( res => this.userCertificates = res );
+        this.certificateService.getAllCertificatesForUser().subscribe(res => this.userCertificates = res);
         this._snackBar.open('Certificate successfully withdrawn', 'Dissmiss', {
           duration: 3000
         });
-
 
         setTimeout(() => {
         }, 1000);
@@ -45,7 +44,18 @@ export class CertificatesTableComponent implements OnInit {
         this._snackBar.open('Certificate could not be withdrawn', 'Dissmiss', {
           duration: 3000
         });
-      });;;
+      });
+  }
+
+  download(certificate: CertificateViewModel) {
+    this.certificateService.download(certificate.serialNumber).subscribe(data => {
+      let blob = new Blob([data], { type: 'application/octet-stream' })
+      let link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = certificate.serialNumber + ".cer"
+      link.click()
+      URL.revokeObjectURL(link.href)
+    });
   }
 
 }

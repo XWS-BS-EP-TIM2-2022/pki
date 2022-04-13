@@ -165,7 +165,7 @@ public class CertificateIssuingService {
 
     private KeyPair generateKeys() {
         try {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
             SecureRandom random = SecureRandom.getInstanceStrong();
             generator.initialize(2048, random);
             return generator.generateKeyPair();

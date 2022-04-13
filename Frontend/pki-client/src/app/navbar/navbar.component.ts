@@ -32,8 +32,9 @@ export class NavbarComponent implements OnInit {
     localStorage.removeItem('userType');
     localStorage.removeItem('jwt');
     this.loginService.isLoggedIn = false;
-    this.route.navigate(['/']);
-    window.location.reload();
+    setTimeout(() => {
+      this.route.navigate(['/'])
+    }, 500)
   }
 
   public getCurrentUser() {
@@ -48,7 +49,9 @@ export class NavbarComponent implements OnInit {
     this.certificateService.issueRootCertificate().subscribe(
       (data) => {
         this.snackBar.open("New root certificate successfully created!", "Dismiss", { duration: 3000 });
-        this.route.navigate(['/certificates'])
+        setTimeout(() => {
+          this.route.navigate(['/certificates'])
+        }, 500)
       },
       (error) => {
         this.snackBar.open("Root certificate already exists!", "Dismiss", { duration: 3000 });
