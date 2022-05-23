@@ -5,7 +5,9 @@ export class User {
     name!: string;
     surname!: string;
     address!: string;
-    role!: string;
+    role!: {
+        name:string
+    };
     commonName!: string;
     organizationName!: string;
     username!: string;

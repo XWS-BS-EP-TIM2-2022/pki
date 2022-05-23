@@ -40,8 +40,10 @@ export class NavbarComponent implements OnInit {
   public getCurrentUser() {
     this.userService.getCurrentUser().subscribe(data => {
       this.currentUser = data;
+      console.log(this.currentUser.role);
+      
       if (this.currentUser !== null)
-        this.currentRole = this.currentUser.role;
+        this.currentRole = this.currentUser.role.name;
     });
   }
 
@@ -59,10 +61,10 @@ export class NavbarComponent implements OnInit {
   }
 
   isAdmin() {
-    return this.currentRole === 'Admin';
+    return this.currentRole === 'ROLE_ADMIN';
   }
 
   isIntermediate() {
-    return this.currentRole === 'Intermediate';
+    return this.currentRole === 'ROLE_INTERMEDIATE';
   }
 }

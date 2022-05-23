@@ -27,7 +27,7 @@ export class CertificatesTableComponent implements OnInit {
   ngOnInit(): void {
     this.userService.getCurrentUser().subscribe(data => {
       this.currentUser = data;
-      this.isAdmin = this.currentUser.role === 'Admin';
+      this.isAdmin = this.currentUser.role.name === 'ROLE_ADMIN';
     });
 
     this.certificateService.getAllCertificatesForUser().subscribe(res => this.userCertificates = res);
