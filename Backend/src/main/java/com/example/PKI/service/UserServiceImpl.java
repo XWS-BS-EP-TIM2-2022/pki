@@ -2,6 +2,7 @@ package com.example.PKI.service;
 
 import com.example.PKI.exception.PasswordNotSecuredException;
 import com.example.PKI.model.User;
+import com.example.PKI.repository.RoleRepository;
 import com.example.PKI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,14 +25,15 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     public UserServiceImpl(){}
 
     @Autowired
     public UserServiceImpl(UserRepository appUserRepository) {
         this.appUserRepository = appUserRepository;
     }
-
-
 
     @Override
     public User findOne(long id) {
@@ -46,7 +48,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User save(User appUser) {
         appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
-        System.out.println(appUser.getPassword());
+        appUser.setRole(roleRepository.findByName(appUser.getRole().getName()));
         return appUserRepository.save(appUser);
     }
 

@@ -43,7 +43,9 @@ export class RegisterComponent implements OnInit {
     }
     this.registerService.registerUser(this.myFormGroup.getRawValue()).subscribe({
       next: (data) => {alert("Succesfully registered!")},
-      error: (err) => {alert("Email already in use!")}
+      error: (err) => {
+        console.log(err)
+        alert(err)}
     });
   }
 }
