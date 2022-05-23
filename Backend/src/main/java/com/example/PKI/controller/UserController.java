@@ -12,15 +12,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,31 +39,15 @@ public class UserController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private TokenUtils tokenUtils;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDTO> save(@RequestBody UserDTO appUserDTO) {
-
-        if (appUserDTO.getEmail() == null || appUserDTO.getPassword() == null) {
+    public ResponseEntity<UserDTO> save(@Valid @RequestBody UserDTO appUserDTO) {
+        User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), appUserDTO.getRole(), appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
+        if(appUser.getRole().getName().equals(Role.ADMIN_ROLE) || appUserService.findByEmail(appUser.getEmail()) != null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        if(appUserService.findByEmail(appUserDTO.getEmail()) != null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        if(appUserDTO.getRole() == Role.Intermediate) {
-            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(), appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.Intermediate, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
-            appUser = appUserService.save(appUser);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else if(appUserDTO.getRole() == Role.EndUser) {
-            User appUser = new User(appUserDTO.getId(), appUserDTO.getEmail(),appUserDTO.getPassword(), appUserDTO.getName(), appUserDTO.getSurname(), appUserDTO.getAddress(), Role.EndUser, appUserDTO.getCommonName(), appUserDTO.getOrganizationName());
-            appUser = appUserService.save(appUser);
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        appUserService.save(appUser);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, path = "/login")
@@ -75,7 +65,7 @@ public class UserController {
 
         return new ResponseEntity<>(new LoginResponseDTO(appUser, userTokenState), HttpStatus.OK);
     }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Collection<UserDTO>> findAll() {
         Collection<User> appUsers = appUserService.findAll();
@@ -109,8 +99,21 @@ public class UserController {
         var users = appUserService.findAll();
         var clients = users.stream()
                 .filter(user -> user.getEmail() != currentUser.getEmail() &&
-                        (user.getRole() == Role.Intermediate || user.getRole() == Role.EndUser))
+                        (user.getRole().getName().equals(Role.INTERMEDIATE_ROLE) || user.getRole().getName().equals(Role.END_USER_ROLE)))
                 .collect(Collectors.toCollection(ArrayList::new));
         return new ResponseEntity(clients, HttpStatus.OK);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @org.springframework.web.bind.annotation.ExceptionHandler(MethodArgumentNotValidException.class)
+    public final ResponseEntity<?> handleValidationExceptions(
+            MethodArgumentNotValidException ex, WebRequest request) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 }

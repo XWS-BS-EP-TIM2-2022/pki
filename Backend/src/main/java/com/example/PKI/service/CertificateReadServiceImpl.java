@@ -39,7 +39,7 @@ public class CertificateReadServiceImpl implements CertificateReadService {
 
     @Override
     public List<CertificateData> findAllByUserRole(Role role, String email) {
-        return role.equals(Role.Admin) ? this.findAll() : role.equals(Role.Intermediate) ? findCertificatesForIntermediate(email) : repository.findCertificateBySubject(email);
+        return role.getName().equals(Role.ADMIN_ROLE) ? this.findAll() : role.getName().equals(Role.INTERMEDIATE_ROLE) ? findCertificatesForIntermediate(email) : repository.findCertificateBySubject(email);
     }
 
     private List<CertificateData> findCertificatesForIntermediate(String intermEmail) {

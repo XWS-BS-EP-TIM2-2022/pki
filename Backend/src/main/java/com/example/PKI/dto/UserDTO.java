@@ -3,16 +3,29 @@ package com.example.PKI.dto;
 import com.example.PKI.model.User;
 import com.example.PKI.model.enumerations.Role;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+
 public class UserDTO {
 
     private long id;
+    @Email
+    @NotBlank
     private String email;
+    @NotBlank
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#&()–[{}]:;',?/*~$^+=<>]).{8,20}$")
     private String password;
+    @NotBlank
     private String name;
+    @NotBlank
     private String surname;
+    @NotBlank
     private String address;
     private Role role;
+    @NotBlank
     private String commonName;
+    @NotBlank
     private String organizationName;
 
     public UserDTO() {

@@ -1,14 +1,17 @@
 package com.example.PKI.model;
 
+import com.example.PKI.exception.UnexpectedUserRoleException;
 import com.example.PKI.model.enumerations.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import javax.validation.constraints.*;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
@@ -18,7 +21,7 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
     @Column(nullable = false)
     private String password;
@@ -28,7 +31,7 @@ public class User implements UserDetails {
     private String surname;
     @Column(nullable = false)
     private String address;
-    @Column(nullable = false)
+    @ManyToOne
     private Role role;
     @Column(nullable = false)
     private String commonName;
@@ -50,10 +53,15 @@ public class User implements UserDetails {
         this.name = name;
         this.surname = surname;
         this.address = address;
-        this.role = role;
+        this.role = validateUserRole(role.getName());
         this.commonName = commonName;
         this.organizationName = organizationName;
         this.username = email;
+    }
+
+    private Role validateUserRole(String roleName) {
+        if(Role.of(roleName)!=null) return Role.of(roleName);
+        throw new UnexpectedUserRoleException();
     }
 
     public long getId() {
@@ -146,32 +154,33 @@ public class User implements UserDetails {
         return this.email;
     }
 
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return new ArrayList<>() {{
+            add(role);
+        }};
+    }
 
-	@Override
-	public boolean isAccountNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    @Override
+    public boolean isAccountNonExpired() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 
-	@Override
-	public boolean isAccountNonLocked() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    @Override
+    public boolean isAccountNonLocked() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 
-	@Override
-	public boolean isCredentialsNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
+    @Override
+    public boolean isCredentialsNonExpired() {
+        // TODO Auto-generated method stub
+        return true;
+    }
 
-	@Override
-	public boolean isEnabled() {
-		return true;
-	}
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
